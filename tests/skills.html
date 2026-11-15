@@ -16,6 +16,7 @@
 <script src="../oraciones/skills.js"></script>
 <script src="../diccionario/skills.js"></script>
 <script src="../lectura/skills.js"></script>
+<script src="../literatura/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -232,6 +233,36 @@ function checkAgreement(where, toks){
   for (const [w, [means, sents]] of Object.entries(D.skills.find(s => s.id === "di-acepcion").entries)){
     addTextAll(w); means.forEach(addTextAll); sents.forEach(([s2, k]) => { addTextAll(s2); if (!(k >= 1 && k <= means.length)) fail(`acepción ${w}: ${k}`); });
   }
+})();
+
+/* Literatura: the hand-counted verse lengths and the hand-made rhymes must agree with the rules */
+(function(){
+  const T = L4.TOPICS.find(t => t.id === "literatura"); if (!T) return;
+  const S = id => T.skills.find(s => s.id === id);
+  for (const [lv, list] of Object.entries(S("li-medida").versos)) for (const [v, n] of list){
+    addTextAll(v);
+    const m = L4.medida(v);
+    if (m.total !== n) fail(`medida: «${v}» counted by hand ${n}, by the rules ${m.total}`);
+    if (lv === "1" && (m.sin || m.adj)) fail(`medida: «${v}» is level 1 but has sinalefa or an aguda/esdrújula ending`);
+    if (lv === "2" && (!m.sin || m.adj)) fail(`medida: «${v}» is level 2 but has no sinalefa, or ends in aguda/esdrújula`);
+    if (lv === "3" && !m.adj) fail(`medida: «${v}» is level 3 but ends in a llana word`);
+  }
+  const KNOWN = [["ventana", "campana", "consonante"], ["casa", "playa", "asonante"], ["perro", "cielo", "asonante"], ["ratón", "canción", "consonante"],
+    ["tierra", "puerta", "asonante"], ["gato", "mesa", "no riman"], ["luna", "cuna", "consonante"], ["sol", "flor", "asonante"], ["camino", "niño", "asonante"],
+    ["flor", "color", "consonante"], ["estrella", "huella", "consonante"], ["mar", "sol", "no riman"], ["cielo", "suelo", "consonante"], ["árbol", "pájaro", "asonante"],
+    ["libro", "niño", "asonante"], ["jardín", "camión", "no riman"]];
+  for (const [a, b, want] of KNOWN){ const got = L4.rima(a, b); if (got !== want) fail(`rima ${a}/${b}: ${got} (want ${want})`); }
+  for (const [l1, l2, right, ...bad] of S("li-rima").pareados){
+    const last = l1.split(" ").pop().replace(/[,.]/g, "");
+    addTextAll(l1); addTextAll(l2.replace("___", right));
+    if (L4.rima(last, right) === "no riman") fail(`pareado: ${right} doesn't rhyme with ${last}`);
+    bad.forEach(b => { addTextAll(b); if (L4.rima(last, b) !== "no riman") fail(`pareado: ${b} also rhymes with ${last} (${L4.rima(last, b)})`); });
+  }
+  S("li-rima").words.forEach(addTextAll);
+  S("li-generos").frags.forEach(([, , lines]) => lines.forEach(addTextAll));
+  S("li-recursos").recursos.forEach(r => addTextAll(r[0]));
+  S("li-lenguas").mundo.forEach(([q, r, w]) => { addTextAll(q); addTextAll(r); w.forEach(addTextAll); });
+  S("li-lenguas").countries.forEach(addTextAll);
 })();
 
 for (const T of L4.TOPICS){

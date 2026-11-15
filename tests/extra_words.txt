@@ -22,3 +22,13 @@ sillita
 abuelita
 carísima
 facilísimo
+# Names of authors, works and places (correct proper names, not in the dictionaries)
+Andalucía
+Bécquer
+Cervantes
+Emilianenses
+Federico
+Fuenteovejuna
+Lope
+Piturra
+Rosalía

@@ -253,13 +253,17 @@ preposición, adverbio) and with correct agreement; most skills ask about those 
       news item, invitation and recipe; what each type is for
 - Reading aloud was left out: the app can't hear the child, so it couldn't check it.
 
-### Phase 8 – Literatura y lenguas
-- [ ] Géneros: narrativa, lírica or teatro? Prose or verse?
-- [ ] Medida de los versos: count the syllables in a line of poetry (simple cases)
-- [ ] Rima: consonante or asonante? Do these words rhyme? Finish the line of the poem
-- [ ] Recursos literarios: comparación (simile) and personificación
-- [ ] Autores y obras: Cervantes, Lope de Vega, Lorca, Machado, Juan Ramón Jiménez, Gloria Fuertes, Bécquer, Rosalía de Castro… (match author ↔ work)
-- [ ] Lenguas de España: castellano, catalán, gallego, euskera, valenciano and where they are spoken, plus Spanish as a world language
+### Phase 8 – Literatura y lenguas ✅
+All texts written for the app (no copied poems).
+- [x] Narrativa, lírica y teatro: which genre, prose or verse, and their parts (diálogo, acotación, verso, estrofa, acto, narrador)
+- [x] Medida de los versos: count the syllables; level 2 adds sinalefa, level 3 the aguda (+1) / esdrújula (−1) ending.
+      Every verse is counted by hand and by the rules (`L4.medida`), and the test checks they agree
+- [x] La rima: do they rhyme, consonante or asonante (from the stressed vowel; in esdrújulas only the stressed and last vowels), finish a couplet
+- [x] Comparación y personificación: which one (or none), what is compared with what, what does something do like a person
+- [x] Autores y obras: Cervantes, Lope de Vega, Calderón, Bécquer, Rosalía de Castro, Machado, Lorca, Juan Ramón Jiménez, Gloria Fuertes;
+      work ↔ author, what they mostly wrote, a few facts (Sancho Panza, Platero es un burro)
+- [x] Lenguas de España: gallego, catalán / valenciano, euskera and where; «Bon dia», «Bos días», «Egun on»…; the history of Spanish
+      (latín, Castilla, Glosas Emilianenses) and where it is spoken (not in Brasil!)
 
 ### Phase 9 – Main page extras
 - [ ] Curriculum map: every line of `curriculo_lengua_4_primaria.md`, coloured by progress. Lines that are class work (speaking, whole books) are marked "en clase".
