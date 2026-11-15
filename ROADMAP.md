@@ -243,12 +243,15 @@ preposición, adverbio) and with correct agreement; most skills ask about those 
 - [x] Elige el significado: a numbered dictionary entry; choose the meaning (acepción) that fits the sentence
 - **Checks:** the order and the guide-word answers are worked out again with a separate simple comparison of the Spanish alphabet.
 
-### Phase 7 – Lectura
-- [ ] Comprensión: a short generated text (character + place + problem + ending, from templates) followed by
-      questions on who, where and what happened, plus one inference ("¿Cómo se sentía…?")
-- [ ] Parts of a story: inicio, nudo and desenlace (put them in order); tema, protagonista, personajes secundarios and espacio
-- [ ] Text types: carta (letter), noticia (news item), invitación, receta (recipe), diario, cuento, poema. The child recognises each one and its parts (e.g. the parts of a letter).
-- [ ] Reading aloud (*optional*): a sentence to read with the right tone of voice for its punctuation. Only the child can check this, so it doesn't count towards stars.
+### Phase 7 – Lectura ✅
+- [x] Comprensión lectora: short stories built from 8 hand-written scenes (a place, a problem, a helper and an ending that belong
+      together), with a different child, time and gender agreement each time. Questions: who, where, who helped (level 1);
+      the problem, how it was solved, the order of events (level 2); feelings and reasons that have to be inferred, with the
+      feelings left out of the text (level 3)
+- [x] Partes del cuento: inicio, nudo, desenlace (which part, put them in order); protagonista, personaje secundario, espacio; the tema
+- [x] Tipos de texto: carta, noticia, invitación, receta, diario, cuento, poema (14 hand-written examples); the parts of a letter,
+      news item, invitation and recipe; what each type is for
+- Reading aloud was left out: the app can't hear the child, so it couldn't check it.
 
 ### Phase 8 – Literatura y lenguas
 - [ ] Géneros: narrativa, lírica or teatro? Prose or verse?

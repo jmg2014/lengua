@@ -5,7 +5,7 @@
 // The maths app lives on the same address and shares the browser's offline storage, so this file only ever
 // deletes its own old copies (names starting with "lengua4-"), never the maths app's.
 const PREFIX = "lengua4-";
-const CACHE = PREFIX + "v7";
+const CACHE = PREFIX + "v8";
 const FILES = [
   "./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png",
   "./shared/style.css", "./shared/progress.js", "./shared/engine.js", "./shared/topic.js", "./shared/words.js", "./shared/silabas.js",
@@ -14,7 +14,8 @@ const FILES = [
   "./gramatica/", "./gramatica/index.html", "./gramatica/skills.js",
   "./vocabulario/", "./vocabulario/index.html", "./vocabulario/skills.js",
   "./oraciones/", "./oraciones/index.html", "./oraciones/skills.js",
-  "./diccionario/", "./diccionario/index.html", "./diccionario/skills.js"
+  "./diccionario/", "./diccionario/index.html", "./diccionario/skills.js",
+  "./lectura/", "./lectura/index.html", "./lectura/skills.js"
 ];
 
 self.addEventListener("install", e => {

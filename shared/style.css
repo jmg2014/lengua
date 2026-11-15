@@ -176,3 +176,10 @@ h3{font-size:1.05rem;margin:1.2em 0 .5em}
 .choices .hint{margin:0;text-align:center}
 .qpic .entry{font-size:clamp(1.05rem,3vw,1.3rem);line-height:1.5;text-align:left;max-width:640px;background:var(--card);border:2px solid var(--line);border-left:6px solid var(--accent);border-radius:12px;padding:10px 14px}
 .qpic .entry span{display:block}
+/* long cards (sentences, parts of a story) and reading texts */
+.card.long{font-size:clamp(1rem,2.6vw,1.2rem);font-weight:600;text-align:left;line-height:1.4;max-width:100%;padding:.5em .8em}
+.built:has(.card.long),.pool:has(.card.long){flex-direction:column;align-items:stretch}
+.qpic .texto{font-size:clamp(1.05rem,3vw,1.3rem);line-height:1.55;text-align:left;max-width:680px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 18px}
+.qpic .texto p{margin:.35em 0}
+.qpic .texto p.hl{background:var(--gold);color:var(--gold-ink);border-radius:8px;padding:2px 6px;font-weight:700}
+.qpic .texto p.tit{font-weight:800;font-size:1.1em}

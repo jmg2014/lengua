@@ -15,6 +15,7 @@
 <script src="../vocabulario/skills.js"></script>
 <script src="../oraciones/skills.js"></script>
 <script src="../diccionario/skills.js"></script>
+<script src="../lectura/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -34,6 +35,8 @@ function check(skill, lv, q){
   count++;
   if (!q.text) fail(where + ": no text");
   if (!q.explain) fail(where + ": no explanation");
+  if (/\{N\}|\[\w*\/\w*\]/.test((q.text || "") + (q.picture || "") + (q.items || []).join(" ") + (q.choices || []).join(" "))) fail(where + ": a placeholder was left in the text");
+  if (q.picture && /class="(texto|entry)"/.test(q.picture)) addText(q.picture.replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " "));
   const m = q.input || "choice";
   if (m === "choice" || m === "gap"){
     if (!Array.isArray(q.choices) || q.choices.length < 2) fail(where + ": needs 2+ choices");
@@ -62,6 +65,7 @@ function check(skill, lv, q){
   }
   if (m === "order"){
     if (!q.items || q.items.length < 2) fail(where + ": needs 2+ cards");
+    if (new Set(q.items).size !== q.items.length && !q.joiner && q.joiner !== "") fail(where + ": two cards are the same");
     addText(q.items.join(" "));
   }
   if (m === "punct"){

@@ -297,9 +297,9 @@ function tapGap(q, g){
 function renderOrder(q){
   const j = q.joiner === undefined ? " " : q.joiner;
   $("#board").innerHTML =
-    `<div class="built ${j === "" ? "tight" : ""}">${S.built.length ? S.built.map((p, n) => `<button class="card on" data-b="${n}">${esc(S.pool[p])}</button>`).join("")
+    `<div class="built ${j === "" ? "tight" : ""}">${S.built.length ? S.built.map((p, n) => `<button class="card on${S.pool[p].length > 30 ? " long" : ""}" data-b="${n}">${esc(S.pool[p])}</button>`).join("")
       : `<span class="muted hint">Toca las tarjetas en orden</span>`}</div>
-     <div class="pool">${S.pool.map((t, p) => S.built.includes(p) ? `<span class="card ghostcard">${esc(t)}</span>` : `<button class="card" data-p="${p}">${esc(t)}</button>`).join("")}</div>`;
+     <div class="pool">${S.pool.map((t, p) => S.built.includes(p) ? `<span class="card ghostcard${t.length > 30 ? " long" : ""}">${esc(t)}</span>` : `<button class="card${t.length > 30 ? " long" : ""}" data-p="${p}">${esc(t)}</button>`).join("")}</div>`;
   $("#choices").innerHTML = S.built.length === S.pool.length ? `<button class="choice check" data-check>Comprobar ✓</button>` : "";
 }
 
