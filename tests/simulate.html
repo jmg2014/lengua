@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Daily mix simulation</title></head>
+<body>
+<pre id="out">running…</pre>
+<iframe id="f" src="../index.html" style="width:400px;height:300px"></iframe>
+<script>
+/* How long does the daily mix alone take to cover everything?
+   Plays one daily mix per day with the real mix-building code (L4._buildMix) and the real level/star rules
+   (L4.prog.mixProgress), with the date moved forward one day at a time. The child gets a question right with
+   probability p at level 1, p − 0.05 at level 2 and p − 0.1 at level 3.  Options: ?p=0.85&trials=5&days=730 */
+const qs = new URLSearchParams(location.search), P0 = +(qs.get("p") || .85), TRIALS = +(qs.get("trials") || 5), MAXDAYS = +(qs.get("days") || 730);
+document.getElementById("f").onload = () => {
+  const w = document.getElementById("f").contentWindow, L4 = w.L4, RealDate = w.Date;
+  let offset = 0;
+  class FakeDate extends RealDate {
+    constructor(...a){ if (a.length) super(...a); else super(RealDate.now() + offset); }
+    static now(){ return RealDate.now() + offset; }
+  }
+  w.Date = FakeDate;
+  const skills = L4.TOPICS.flatMap(T => T.skills), n = skills.length, P = L4.prog;
+  const results = [];
+  for (let t = 0; t < TRIALS; t++){
+    P.resetAll(); offset = 0;
+    const r = { met:null, half:null, ninety:null, all:null };
+    for (let day = 1; day <= MAXDAYS; day++){
+      offset = day * 864e5;
+      for (const q of L4._buildMix()){
+        const p = P0 - (q._lv - 1) * .05, ok = Math.random() < p;
+        P.record(q._skill, ok, 20000);
+        P.mixProgress(q._skill, q._lv, ok, q._name);
+      }
+      const met = skills.filter(s => (P.peek(s.id) || {}).seen).length, stars = skills.filter(s => (P.peek(s.id) || {}).star).length;
+      if (r.met === null && met === n) r.met = day;
+      if (r.half === null && stars >= n / 2) r.half = day;
+      if (r.ninety === null && stars >= n * .9) r.ninety = day;
+      if (stars === n){ r.all = day; break; }
+    }
+    results.push(r);
+  }
+  const med = k => { const v = results.map(r => r[k]).filter(x => x !== null).sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : "never"; };
+  const months = d => typeof d === "number" ? ` (~${(d / 30).toFixed(1)} months)` : "";
+  document.getElementById("out").textContent = [
+    `${n} skills, p = ${P0}, ${TRIALS} trials, one daily mix (12 questions) a day`,
+    `every skill met:      day ${med("met")}${months(med("met"))}`,
+    `half the stars:       day ${med("half")}${months(med("half"))}`,
+    `90% of the stars:     day ${med("ninety")}${months(med("ninety"))}`,
+    `every star:           day ${med("all")}${months(med("all"))}`,
+    "DONE"].join("\n");
+  P.resetAll();
+};
+</script>
+</body>
+</html>

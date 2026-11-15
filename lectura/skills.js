@@ -90,7 +90,7 @@ const comprension = {
   make(level){
     const sc = pick(SCENES), st = story(sc, level < 3), { n, g, f } = st, pic = box([st.inicio, st.nudo, st.desenlace]);
     const el = g === "f" ? "la" : "el";
-    const kind = pick({ 1:["who", "where", "helper"], 2:["problem", "solution", "order"], 3:["feelStart", "feelEnd", "why"] }[level]);
+    const kind = pick({ 1:["who", "where", "helper"], 2:["problem", "solution", "order", "summary"], 3:["feelStart", "feelEnd", "why", "summary"] }[level]);
     const base = { picture:pic, key:`le${level}${kind}${st.inicio}` };
     if (kind === "who"){
       const names = shuffle([n, ...sample(KIDS.filter(k => k[0] !== n).map(k => k[0]), 2)]);
@@ -104,6 +104,15 @@ const comprension = {
       explain:`<b>${sc.probShort}</b>` });
     if (kind === "solution") return Object.assign(base, { input:"choice", text:"¿Cómo se resolvió el problema?", choices:shuffle([sc.solShort, ...others("solShort", sc, 2)]), answer:sc.solShort,
       explain:`<b>${sc.solShort}</b>` });
+    if (kind === "summary"){
+      // the best summary: the right problem and solution; the wrong ones change the helper, or only tell the beginning
+      const other = pick(SCENES.filter(x => x !== sc));
+      const right = `${n}: ${sc.probShort.toLowerCase().replace(/\.$/, "")}, pero ${sc.solShort[0].toLowerCase()}${sc.solShort.slice(1)}`;
+      const wrongHelper = `${n}: ${sc.probShort.toLowerCase().replace(/\.$/, "")}, pero ${other.solShort[0].toLowerCase()}${other.solShort.slice(1)}`;
+      const onlyStart = f(sc.start);
+      return Object.assign(base, { input:"choice", text:"¿Cuál es el mejor <b>resumen</b> de la historia?", choices:shuffle([right, wrongHelper, onlyStart]), answer:right,
+        explain:`Un buen resumen cuenta lo más importante en pocas palabras: el problema y cómo se resolvió. <b>${esc(right)}</b>` });
+    }
     if (kind === "order"){
       const items = [sc.probShort, sc.solShort, f(sc.endShort)];
       return Object.assign(base, { input:"order", text:"Ordena lo que pasó:", items, explain:items.map((x, i) => `${i + 1}. ${esc(x)}`).join("<br>") });
@@ -181,25 +190,39 @@ const TEXTS = [
   ["cuento", [["Érase una vez un dragón que no sabía echar fuego. Un día, una niña le enseñó a soplar muy fuerte y, por fin, consiguió encender una vela.", "cuerpo"]]],
   ["cuento", [["Había una vez un ratón muy pequeño que vivía en una biblioteca. Por las noches, leía los cuentos que dejaban los niños.", "cuerpo"]]],
   ["poema", [["En la playa hay una ola", "verso"], ["que baila sola, sola.", "verso"], ["Viene y va, viene y va,", "verso"], ["¿hasta dónde llegará?", "verso"]]],
-  ["poema", [["Mi gato gris", "verso"], ["duerme feliz,", "verso"], ["sueña con ratones", "verso"], ["y con melocotones.", "verso"]]]
+  ["poema", [["Mi gato gris", "verso"], ["duerme feliz,", "verso"], ["sueña con ratones", "verso"], ["y con melocotones.", "verso"]]],
+  ["biografía", [["Gloria Fuertes nació en Madrid en 1917. De pequeña ya escribía poemas y cuentos. Fue una poeta muy conocida por sus libros para niños y por sus programas de televisión. Murió en 1998.", "cuerpo"]]],
+  ["biografía", [["Miguel de Cervantes nació en Alcalá de Henares en 1547. Fue soldado y viajó por muchos países. Escribió «Don Quijote de la Mancha», la novela más famosa en español. Murió en Madrid en 1616.", "cuerpo"]]],
+  ["anuncio", [["¡Nuevas zapatillas Saltarín!", "eslogan"], ["Son tan ligeras que parece que vuelas. ¡Corre más rápido que nadie!", "cuerpo"], ["Ya en tu tienda de deportes.", "cuerpo"]]],
+  ["anuncio", [["¿Tienes sed? ¡Prueba el zumo Sol!", "eslogan"], ["Hecho con naranjas de verdad. ¡Te encantará!", "cuerpo"]]],
+  ["formulario", [["Inscripción en la biblioteca", "título"], ["Nombre: ______", "dato"], ["Apellidos: ______", "dato"], ["Fecha de nacimiento: ______", "dato"], ["Firma: ______", "dato"]]],
+  ["formulario", [["Campamento de verano: hoja de inscripción", "título"], ["Nombre y apellidos: ______", "dato"], ["Edad: ______", "dato"], ["Teléfono de la familia: ______", "dato"], ["¿Sabes nadar? Sí ☐ No ☐", "dato"]]],
+  ["descripción", [["Mi abuela es bajita y tiene el pelo blanco y rizado. Sus ojos son pequeños y alegres, y siempre lleva unas gafas redondas. Es muy cariñosa y le encanta contar historias.", "cuerpo"]]],
+  ["descripción", [["Mi habitación es pequeña pero muy luminosa. Tiene una ventana grande, una cama junto a la pared y una estantería llena de libros. Las paredes son de color verde claro.", "cuerpo"]]],
+  ["texto informativo", [["Las abejas", "título"], ["Las abejas son insectos que viven en grupos muy grandes llamados colmenas. Recogen el néctar de las flores para fabricar miel. Además, ayudan a que las plantas den frutos.", "cuerpo"]]],
+  ["texto informativo", [["El sistema solar", "título"], ["El sistema solar está formado por el Sol y los ocho planetas que giran a su alrededor. La Tierra es el tercer planeta más cercano al Sol.", "cuerpo"]]]
 ];
-const TYPES = ["carta", "noticia", "invitación", "receta", "diario", "cuento", "poema"];
+const TYPES = ["carta", "noticia", "invitación", "receta", "diario", "cuento", "poema", "biografía", "anuncio", "formulario", "descripción", "texto informativo"];
 const PURPOSE = { carta:"contar algo a una persona que está lejos", noticia:"informar de algo que ha pasado de verdad", invitación:"pedir a alguien que venga a una celebración",
   receta:"explicar cómo se prepara una comida", diario:"escribir lo que nos pasa cada día y lo que sentimos", cuento:"contar una historia inventada",
-  poema:"expresar sentimientos con versos y rima" };
-const ART = { carta:"una carta", noticia:"una noticia", invitación:"una invitación", receta:"una receta", diario:"un diario", cuento:"un cuento", poema:"un poema" };
+  poema:"expresar sentimientos con versos y rima", biografía:"contar la vida de una persona real", anuncio:"convencer a la gente para que compre o haga algo",
+  formulario:"recoger los datos de una persona", descripción:"decir cómo es una persona, un lugar o una cosa", "texto informativo":"explicar un tema con datos verdaderos" };
+const ART = { carta:"una carta", noticia:"una noticia", invitación:"una invitación", receta:"una receta", diario:"un diario", cuento:"un cuento", poema:"un poema",
+  biografía:"una biografía", anuncio:"un anuncio", formulario:"un formulario", descripción:"una descripción", "texto informativo":"un texto informativo" };
 const PART_ART = { "lugar y fecha":"el lugar y la fecha", saludo:"el saludo", cuerpo:"el cuerpo", despedida:"la despedida", firma:"la firma", titular:"el titular",
   motivo:"el motivo", día:"el día", hora:"la hora", lugar:"el lugar", título:"el título", ingredientes:"los ingredientes", preparación:"la preparación" };
 const textBox = (lines, hl) => `<div class="texto">${lines.map(([t, part], i) =>
   `<p class="${i === hl ? "hl" : ""} ${part === "titular" || part === "título" ? "tit" : ""}">${esc(t)}</p>`).join("")}</div>`;
 const tipos = {
   id:"le-tipos", name:"Tipos de texto", emoji:"📰",
-  desc:"Cartas, noticias, invitaciones, recetas, diarios, cuentos y poemas.",
+  desc:"Cartas, noticias, invitaciones, recetas, diarios, cuentos, poemas, biografías, anuncios, formularios, descripciones y textos informativos.",
   rule:`Cada tipo de texto sirve para algo y tiene sus partes:
     <ul><li><b>Carta</b>: lugar y fecha, saludo (Querida abuela:), cuerpo, despedida y firma.</li>
     <li><b>Noticia</b>: titular y cuerpo; cuenta algo real: qué, quién, cuándo y dónde.</li>
     <li><b>Invitación</b>: motivo, día, hora y lugar. · <b>Receta</b>: título, ingredientes y preparación.</li>
-    <li><b>Diario</b>: lo que nos pasa cada día. · <b>Cuento</b>: una historia inventada. · <b>Poema</b>: versos, a menudo con rima.</li></ul>`,
+    <li><b>Diario</b>: lo que nos pasa cada día. · <b>Cuento</b>: una historia inventada. · <b>Poema</b>: versos, a menudo con rima.</li>
+    <li><b>Biografía</b>: la vida de una persona real. · <b>Anuncio</b>: quiere convencernos, con un eslogan. · <b>Formulario</b>: huecos para rellenar datos.</li>
+    <li><b>Descripción</b>: cómo es alguien o algo. · <b>Texto informativo</b>: explica un tema con datos.</li></ul>`,
   levels:[
     { name:"¿Qué texto es?", desc:"Reconoce el tipo de texto" },
     { name:"Sus partes", desc:"¿Cómo se llama esta parte?" },
@@ -217,7 +240,7 @@ const tipos = {
     if (level === 1){
       const [t, lines] = pick(TEXTS);
       return { input:"choice", picture:textBox(lines), text:"¿Qué tipo de texto es?", choices:shuffle([t, ...sample(TYPES.filter(x => x !== t), 3)]), answer:t,
-        explain:`Es ${ART[t]}: sirve para ${PURPOSE[t]}.`, key:"tt1" + lines[0][0] };
+        explain:`Es ${ART[t]}: sirve para ${PURPOSE[t]}.`, key:"tt1" + lines[0][0] };   // (the type names are the choices; the article shows in the explanation)
     }
     const [t, lines] = pick(TEXTS.filter(x => ["carta", "noticia", "invitación", "receta"].includes(x[0])));
     const i = Math.floor(Math.random() * lines.length), parts = [...new Set(lines.map(l => l[1]))];

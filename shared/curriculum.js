@@ -29,7 +29,7 @@ L4.CURRICULUM = [
     ["Escribir textos con coherencia y cohesión", ["pu-ordenar", "pu-repetir"]],
     ["Ortografía reglada básica en copias, dictados y textos propios", ["or-dictado"]],
     ["Planificar, escribir, revisar y corregir los propios textos", []],
-    ["Tipos de texto: narración, descripción, diálogo y exposición", ["le-cuento", "li-generos"]],
+    ["Tipos de texto: narración, descripción, diálogo y exposición", ["le-cuento", "le-tipos", "li-generos"]],
     ["Textos de la vida diaria: cartas, noticias, invitaciones, recetas, diarios, cuentos", ["le-tipos", "pu-dospuntos"]],
     ["Escribir en soporte digital", []]
   ]},

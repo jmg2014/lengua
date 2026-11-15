@@ -89,3 +89,4 @@ python3 tests/check.py          # runs tests/engine.html in headless Chrome and 
   - every word the child sees as right, and every misspelling the app can show (none may be a real word)
 - **Spelling:** words are checked against the es_ES dictionary (`/usr/share/hunspell/es_ES`) and `/usr/share/dict/spanish`. A correct word that both are missing goes in `tests/extra_words.txt`, after checking it on [dle.rae.es](https://dle.rae.es).
 - **Demo:** open `tests/inputs.html` to try each input by hand.
+- **Simulation:** `tests/simulate.html?p=0.85&trials=5` plays one daily mix a day and reports how long it takes to meet every skill and earn every star.

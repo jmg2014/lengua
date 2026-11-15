@@ -275,9 +275,22 @@ All texts written for the app (no copied poems).
 - [x] Backup and restore (built in Phase 0)
 - `…/#mapa` and `…/#mayores` open those panels directly
 
-### Phase 10 – Check that regular use covers everything
-- [ ] Go through the curriculum file and the book's table of contents line by line, and fill any gaps
-- [ ] Simulate daily use, as for the maths app: how long until every skill has been met and every ⭐ earned
+### Phase 10 – Check that regular use covers everything ✅
+- [x] Line by line against the curriculum file and the Santillana table of contents. The gaps an app can practise, now filled:
+  - text types: biografía, formulario (in the curriculum), anuncio, texto informativo (in the book) and descripción (curriculum:
+    "narración, descripción, exposición"), added to *Tipos de texto*
+  - "Hacer un resumen" (book) / "resumir el argumento" (curriculum): choose the best summary of a story, in *Comprensión lectora*
+  - what's left is class work: speaking, reading whole books, writing and revising long texts, research (shown "en clase" on the map)
+- [x] Simulated daily use (`tests/simulate.html`): one daily mix a day, with the real mix and the real level/star rules, the date moved forward
+      a day at a time. Median of 5 runs, 58 skills:
+
+  | Right answers | Every skill met | Half the ⭐ | 90% of the ⭐ | Every ⭐ |
+  |---|---|---|---|---|
+  | 95% | ~2.4 months | ~2.8 months | ~3.8 months | ~4.3 months |
+  | 85% | ~2.2 months | ~4.2 months | ~5.9 months | ~7.3 months |
+  | 75% | ~2.6 months | ~6.3 months | ~10.2 months | ~12.7 months |
+
+  So the daily mix alone works through the whole course in about a school year; playing the topic pages too makes it faster.
 
 ### Ideas for later
 - [ ] Optional English hints for the rule cards, for a child who reads more English than Spanish
