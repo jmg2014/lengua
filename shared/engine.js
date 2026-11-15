@@ -15,6 +15,8 @@
                  answer = list of the indexes of the right words. one: true → the first tap answers (one right word)
        "order"   tap cards to put them in order. items = the cards in the RIGHT order (the engine shuffles them);
                  joiner = what goes between them when shown as text (default " "; "" for letters or syllables)
+     fills     for "gap": what a choice puts in the gap when that isn't the choice's text, e.g. { "sin h": "" }
+     say       text the device reads aloud (Spanish voice) when the question starts, with a 🔊 button to hear it again
      check     optional function(given) → true/false, to accept more than one answer
      explain   HTML shown when the answer is wrong (the rule and the right answer)
      solution  short text for the "para practicar" list on the results screen (default: the right answer)
@@ -101,6 +103,28 @@ function confetti(){
 L4.sound = { good:goodSound, bad:badSound, win:winSound };
 L4.confetti = confetti;
 
+/* ---------- reading aloud (dictado) with the device's Spanish voice ----------
+   Voices load a moment after the page, so they are looked up again when the browser says they changed. */
+let esVoice = null;
+function findVoice(){
+  try {
+    const vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    esVoice = vs.find(v => /^es[-_]ES/i.test(v.lang)) || vs.find(v => /^es\b/i.test(v.lang)) || null;
+  } catch(e){ esVoice = null; }
+}
+if (window.speechSynthesis){ findVoice(); try { speechSynthesis.addEventListener("voiceschanged", findVoice); } catch(e){} }
+L4.canSpeak = () => { if (!esVoice) findVoice(); return !!esVoice; };
+L4.say = function(text){
+  if (!L4.canSpeak()) return false;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = esVoice; u.lang = esVoice.lang; u.rate = .8;
+    speechSynthesis.speak(u);
+    return true;
+  } catch(e){ return false; }
+};
+
 /* ---------- play & results screens (added to every page) ---------- */
 const KB_ROWS = [
   ["q","w","e","r","t","y","u","i","o","p"],
@@ -175,7 +199,7 @@ const answersOf = q => Array.isArray(q.answer) ? q.answer : [q.answer];
 function solutionOf(q){
   if (q.solution) return q.solution;
   const m = inputOf(q);
-  if (m === "gap") return q.gap.replace(/_+/, q.answer);
+  if (m === "gap") return q.gap.replace(/_+/, fillOf(q, q.answer));
   if (m === "words") return q.answer.map(i => q.words[i]).join(", ");
   if (m === "order") return q.items.join(q.joiner === undefined ? " " : q.joiner);
   return answersOf(q)[0];
@@ -212,9 +236,11 @@ function renderText(){
     }
   });
 }
+const fillOf = (q, c) => q.fills && c in q.fills ? q.fills[c] : c;
 function renderGap(q, fill, cls){
   const [a, b] = q.gap.split(/_+/);
-  $("#answer").innerHTML = `${esc(a)}<span class="slot ${cls || ""}">${fill ? esc(fill) : "&nbsp;&nbsp;"}</span>${esc(b || "")}`;
+  const shown = fill === undefined ? "&nbsp;&nbsp;" : fill === "" ? "" : esc(fill);
+  $("#answer").innerHTML = `${esc(a)}<span class="slot ${cls || ""}${fill === "" ? " none" : ""}">${shown}</span>${esc(b || "")}`;
 }
 const isMark = w => /^[.,;:!?¡¿…«»"()—-]+$/.test(w);
 function renderWords(q){
@@ -237,7 +263,8 @@ function nextQuestion(){
   $("#playTitle").textContent = q.tag ? `${S.title} · ${q.tag}` : S.title;
   updateProgress();
   $("#qtext").innerHTML = q.text || "";
-  $("#qpic").innerHTML = q.picture || "";
+  $("#qpic").innerHTML = (q.say ? `<button class="sayBtn" id="sayBtn" aria-label="Escuchar otra vez">🔊</button>` : "") + (q.picture || "");
+  if (q.say) setTimeout(() => { if (S && S.questions[S.i] === q) L4.say(q.say); }, 250);
   Object.assign(S, { typed:"", shift:false, dead:null, choice:undefined, picked:new Set(), built:[], pool:[] });
   const ans = $("#answer"), board = $("#board"), ch = $("#choices"), kbd = $("#kbd");
   ans.className = "answer"; ans.innerHTML = ""; board.innerHTML = ""; ch.innerHTML = "";
@@ -283,7 +310,7 @@ function givenText(q, g){
   const m = inputOf(q);
   if (m === "words") return g.map(i => q.words[i]).join(", ");
   if (m === "order") return g.join(q.joiner === undefined ? " " : q.joiner);
-  if (m === "gap") return q.gap.replace(/_+/, g);
+  if (m === "gap") return q.gap.replace(/_+/, fillOf(q, g));
   return String(g);
 }
 /* → "ok", "accent" or "wrong" */
@@ -323,7 +350,7 @@ function submit(){
       else if (c === given) b.classList.add("wrongpick");
       b.disabled = true;
     });
-    if (m === "gap") renderGap(q, ok ? given : given, ok ? "right" : "wrongpick");
+    if (m === "gap") renderGap(q, fillOf(q, given), ok ? "right" : "wrongpick");
   }
   if (m === "text") $("#answer").classList.add(result === "ok" ? "right" : result === "accent" ? "near" : "wrong");
   if (m === "words"){
@@ -435,6 +462,7 @@ $("#board").addEventListener("click", e => {
   if (m === "order" && b){ S.built.splice(+b.dataset.b, 1); renderOrder(q); }
 });
 $("#cont").addEventListener("click", e => { if (e.target.closest("#contBtn") && S && S.waiting) proceed(); });
+$("#qpic").addEventListener("click", e => { if (e.target.closest("#sayBtn") && S) L4.say(S.questions[S.i].say); });
 document.addEventListener("keydown", e => {
   if (!$("#play").classList.contains("active") || !S || e.ctrlKey || e.metaKey || e.altKey) return;
   if (S.waiting){ if (e.key === "Enter"){ e.preventDefault(); proceed(); } return; }

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Syllable tests</title></head>
+<body>
+<pre id="out"></pre>
+<script src="../shared/silabas.js"></script>
+<script>
+/* Known syllable splits (checked against the RAE rules). Run with tests/check.py. */
+const KNOWN = `casa ca-sa | perro pe-rro | calle ca-lle | coche co-che | queso que-so | guitarra gui-ta-rra | pingüino pin-güi-no
+mariposa ma-ri-po-sa | árbol ár-bol | hombre hom-bre | abrazo a-bra-zo | tabla ta-bla | instrumento ins-tru-men-to
+transporte trans-por-te | obstáculo obs-tá-cu-lo | inglés in-glés | atlas at-las | examen e-xa-men | cuaderno cua-der-no
+ciudad ciu-dad | huevo hue-vo | lluvia llu-via | río rí-o | día dí-a | país pa-ís | maíz ma-íz | león le-ón | poeta po-e-ta
+aéreo a-é-re-o | búho bú-ho | ahora a-ho-ra | zanahoria za-na-ho-ria | almohada al-mo-ha-da | rey rey | reyes re-yes | muy muy
+hoy hoy | ayer a-yer | desayuno de-sa-yu-no | buey buey | Uruguay U-ru-guay | construir cons-truir | cigüeña ci-güe-ña
+vergüenza ver-güen-za | aguja a-gu-ja | guerra gue-rra | agua a-gua | antiguo an-ti-guo | murciélago mur-cié-la-go | reír re-ír
+oído o-í-do | caer ca-er | leer le-er | héroe hé-ro-e | aire ai-re | auto au-to | peine pei-ne | jaula jau-la | fuego fue-go
+piano pia-no | triunfo triun-fo | cuidado cui-da-do | ruido rui-do | flor flor | planta plan-ta | princesa prin-ce-sa | dragón dra-gón
+bicicleta bi-ci-cle-ta | extraño ex-tra-ño | excursión ex-cur-sión | perspectiva pers-pec-ti-va | chocolate cho-co-la-te
+teléfono te-lé-fo-no | kilo ki-lo | sandía san-dí-a | tío tí-o | baúl ba-úl | oasis o-a-sis | ahí a-hí | prohíbe pro-hí-be
+aprender a-pren-der | otro o-tro | ombligo om-bli-go | siempre siem-pre | cumpleaños cum-ple-a-ños | submarino sub-ma-ri-no
+subir su-bir | estrella es-tre-lla | pájaro pá-ja-ro | escuela es-cue-la | quince quin-ce | máquina má-qui-na | Miguel Mi-guel
+juguete ju-gue-te | ratón ra-tón | caballo ca-ba-llo | hielo hie-lo | conejo co-ne-jo | elefante e-le-fan-te | mayo ma-yo
+jersey jer-sey | estoy es-toy | yogur yo-gur | ardilla ar-di-lla | iglesia i-gle-sia | océano o-cé-a-no | biblioteca bi-blio-te-ca
+cuchara cu-cha-ra | ambulancia am-bu-lan-cia | invierno in-vier-no | gigante gi-gan-te | hamburguesa ham-bur-gue-sa | paraguas pa-ra-guas
+Lucía Lu-cí-a | ciudades ciu-da-des | geografía ge-o-gra-fí-a | colegio co-le-gio | viaje via-je | atención a-ten-ción`;
+const out = []; let fails = 0;
+for (const pair of KNOWN.split(/\s*[|\n]\s*/)){
+  const [word, want] = pair.trim().split(/\s+/);
+  const got = L4.silabas(word).join("-");
+  if (got !== want){ fails++; out.push(`FAIL silabas: ${word} → ${got} (want ${want})`); }
+  else out.push(`PASS silabas: ${word} → ${got}`);
+}
+out.push(`DONE ${out.length - fails} passed, ${fails} failed`);
+document.getElementById("out").textContent = out.join("\n");
+</script>
+</body>
+</html>

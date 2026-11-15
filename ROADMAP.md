@@ -154,25 +154,28 @@ keyboard and word inputs most.
 - [x] Rule card ("📘 Recuerda") on every skill, open until the skill has been played
 - [x] Tests: 64 automated checks of the inputs and progress (`tests/engine.html`), and a demo page of every input (`tests/inputs.html`)
 
-### Phase 1 – Ortografía
-One skill per rule, each with 3 levels: **choose the letter → write the word → dictado / find the mistake in a sentence.**
-- [ ] b/v (-aba, -bir, -ble, bl/br, after m; -ava/-ave/-eve/-ivo…)
-- [ ] g/j (ge/gi, gue/gui, güe/güi; -aje, -eje, -jero)
-- [ ] ll/y
-- [ ] r/rr (r at the start and after n, l, s; rr between vowels)
-- [ ] h (hie-, hue-, hum-; forms of *haber* and *hacer*)
-- [ ] c/qu and z/c (ca co cu / que qui; za zo zu / ce ci; pez → peces)
-- [ ] d/z at the end of words (pared → paredes, lápiz → lápices)
-- [ ] s/z
-- [ ] Repaso del 1.er ciclo: capital letters (names, after a full stop), mb/mp, nv
-- [ ] **Español e inglés (Spanish vs English)**, for a child who also writes in English. It covers the typical mistakes:
-  - lower-case days, months, languages and nationalities (*lunes*, *enero*, *inglés*)
-  - no double consonants except cc, ll, rr and nn (*inteligente*, *clase*, *comisión*)
-  - ph → f and th → t (*foto*, *teatro*)
-  - inm-/imp- (*inmediato*, *imposible*)
-  - "está" vs "esta"…
-- [ ] El guion: splitting a word at the end of a line by syllables
-- [ ] Dictado: `listen` input with the tablet's Spanish voice. If the tablet has no Spanish voice, the skill uses pictures instead.
+### Phase 1 – Ortografía ✅
+13 skills, most with 3 levels: **choose the letter → pick the right spelling from 3 → write it** (dictation if the device
+has a Spanish voice, writing the word for a picture, or tapping the misspelled word). Every skill has a rule card,
+and every mistake shows the rule again.
+- [x] b/v (bl/br, mb, -aba, -bir, -ble, bu-/bus-/bur-, bi-/bis-/biz-; nv, ll- + v, -avo/-ave/-evo/-eve/-ivo/-iva; words with no rule)
+- [x] g/j/gu/gü (-ger/-gir, -gen/-gía/-gio/-gión; -aje/-eje, -jero/-jera, family with j; gue/gui; güe/güi)
+- [x] ll/y (-illo/-illa; y at the end and its plural; verb forms like leyendo, oyó, construyó)
+- [x] r/rr (r at the start and after n, l, s; rr / r between vowels; pelirrojo)
+- [x] h (hie-, hue-, hum-; haber, hacer, hablar; h in the middle; words that must NOT get an h, with a "sin h" choice)
+- [x] c/qu/z (ca co cu / que qui; za zo zu / ce ci; pez → peces)
+- [x] d/z at the end of words: choose the letter, write the plural, write the singular
+- [x] s/z/c (with a note on seseo)
+- [x] m/n before p, b and v
+- [x] Mayúsculas: names, places, after a full stop, and the traps (days, months, languages)
+- [x] **Español e inglés**: lower-case days, months and languages; no double consonants (only cc, rr, ll, nn); no ph/th;
+      no s + consonant at the start; inm-; cua- not qua-. Choose, write the Spanish for an English word, and find the
+      English-style mistakes in a sentence. (*está / esta* is an accent question: it's in Phase 2, tilde diacrítica.)
+- [x] El guion: split by syllables, never leave a vowel alone, write the syllables with hyphens (`shared/silabas.js`, tested on 119 words)
+- [x] Dictado with the device's Spanish voice (🔊 button to hear it again); without a Spanish voice it uses pictures,
+      and the skill page says how to turn the voice on
+- **Checks:** every word is in the es_ES dictionary, and none of the 621 possible misspellings is a real word.
+  The check removed 15 words whose misspelling is a real word, e.g. *vela* (*bela*), *hierba* (*hierva*), *horno* (*orno*).
 
 ### Phase 2 – Tildes (accents, Units 1–4 of the book)
 - [ ] Sílabas: split a word into syllables (`order`/tap input)

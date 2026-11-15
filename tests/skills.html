@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Skill tests</title></head>
+<body>
+<pre id="out"></pre>
+<script>try { localStorage.removeItem("lengua4-v1"); } catch(e){}</script>
+<script src="../shared/progress.js"></script>
+<script src="../shared/engine.js"></script>
+<script src="../shared/words.js"></script>
+<script src="../shared/silabas.js"></script>
+<script src="../shared/topic.js"></script>
+<script src="../ortografia/skills.js"></script>
+<script>
+/* Generates many questions for every skill and level and checks each one, independently of the code that made it:
+   - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
+   - nothing else could also be right (no repeated choices; in choice questions the wrong options are misspellings)
+   - every word the child is shown as right goes to WORDS (spell-checked by tests/check.py)
+   - every misspelling the app can show goes to MISSPELL (check.py makes sure none of them is a real word)
+   Run with tests/check.py. */
+const out = []; let fails = 0, count = 0;
+const fail = m => { fails++; if (fails < 60) out.push("FAIL " + m); };
+const words = new Set(), miss = new Set();
+const addTextAll = t => String(t).split(/[\s\-]+/).forEach(w => { if (w) words.add(w); });
+function check(skill, lv, q){
+  // the hyphen skill shows pieces of words (mari-posa) and the capitals skill shows names in lower case on purpose:
+  // their whole words are checked from skill.words and skill.names instead
+  const addText = skill.id === "or-guion" ? () => {} : skill.id === "or-may" ? t => { if (/[A-ZÁÉÍÓÚÑ]/.test(t)) addTextAll(t); } : addTextAll;
+  const where = `${skill.id} L${lv} "${(q.text || "").replace(/<[^>]+>/g, "")}"`;
+  count++;
+  if (!q.text) fail(where + ": no text");
+  if (!q.explain) fail(where + ": no explanation");
+  const m = q.input || "choice";
+  if (m === "choice" || m === "gap"){
+    if (!Array.isArray(q.choices) || q.choices.length < 2) fail(where + ": needs 2+ choices");
+    if (new Set(q.choices).size !== q.choices.length) fail(where + ": repeated choice " + q.choices);
+    if (!q.choices.includes(q.answer)) fail(where + ": answer not among choices");
+    if (m === "gap"){
+      if ((q.gap.match(/_/g) || []).length !== 1) fail(where + ": gap must have one _");
+      addText(L4.solutionOf(q));
+    } else if (!/^[A-Z]/.test(q.answer) || skill.id !== "or-ingles") addText(q.answer);
+  }
+  if (m === "text"){
+    if (typeof q.answer !== "string" || !q.answer.trim()) fail(where + ": empty answer");
+    addText(q.answer);
+    if (q.say && typeof q.say !== "string") fail(where + ": say must be text");
+  }
+  if (m === "words"){
+    if (!q.answer.length) fail(where + ": no right word");
+    for (const i of q.answer){
+      if (!(i >= 0 && i < q.words.length)) fail(where + ": answer index out of range");
+      else if (/^[.,;:!?¡¿…]+$/.test(q.words[i])) fail(where + ": answer is a punctuation mark");
+    }
+    if (q.one && q.answer.length !== 1) fail(where + ": one:true needs exactly one right word");
+    q.words.forEach((w, i) => { if (!q.answer.includes(i) || skill.id === "or-may") addText(w); });
+    addText(L4.solutionOf(q));
+  }
+  if (m === "order"){
+    if (!q.items || q.items.length < 2) fail(where + ": needs 2+ cards");
+  }
+  if (skill.id === "or-may") checkCapitals(where, q);
+  (q.wrongs || []).forEach(w => miss.add(w));
+  // a wrong option in a choice question must never be the same word as the answer
+  if (m === "choice" && q.wrongs) q.wrongs.forEach(w => { if (w === q.answer) fail(where + ": a wrong option equals the answer"); });
+}
+
+/* capitals, worked out again here: the first word, the word after a full stop, and names of people and places */
+const GIRLS = ["marta", "lucía", "elena", "sofía", "carmen", "irene"];
+const PROPER = new Set([...GIRLS, "luis", "pablo", "hugo", "daniel", "javier", "mario",
+  "madrid", "sevilla", "valencia", "toledo", "londres", "españa", "granada", "bilbao", "málaga", "escocia"]);
+const LOWER = new Set(["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo", "sábados", "domingos",
+  "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+  "inglés", "español", "francés", "italiano", "alemán"]);
+function checkCapitals(where, q){
+  const w = q.words, want = [];
+  w.forEach((t, i) => { if (t !== "." && (i === 0 || w[i - 1] === "." || PROPER.has(t))) want.push(i); });
+  const got = q.answer.slice().sort((a, b) => a - b);
+  if (want.join() !== got.join()) fail(`${where}: capitals should be ${want.map(i => w[i])}, got ${got.map(i => w[i])}`);
+  w.forEach((t, i) => {
+    if (LOWER.has(t) && got.includes(i) && i !== 0 && w[i - 1] !== ".") fail(`${where}: ${t} must not need a capital`);
+    if (["amiga", "prima", "vecina"].includes(t) && PROPER.has(w[i + 1]) && !GIRLS.includes(w[i + 1])) fail(`${where}: ${t} ${w[i + 1]}`);
+    if (t === "vecina" && !GIRLS.includes(w[i - 3])) fail(`${where}: ${w[i - 3]} es mi vecina`);
+    if (t === "los" && LOWER.has(w[i + 1]) && !w[i + 1].endsWith("s")) fail(`${where}: los ${w[i + 1]}`);
+  });
+  if (new Set(w.filter(t => LOWER.has(t))).size !== w.filter(t => LOWER.has(t)).length) fail(`${where}: the same day/month/language twice`);
+}
+
+for (const T of L4.TOPICS){
+  for (const skill of T.skills){
+    if (!skill.levels || skill.levels.length !== 3) fail(skill.id + ": needs 3 levels");
+    for (const speak of [false, true]){
+      L4.canSpeak = () => speak;                       // try both: with and without a Spanish voice
+      for (let lv = 1; lv <= 3; lv++){
+        for (let n = 0; n < (speak ? 150 : 400); n++){
+          let q;
+          try { q = skill.make(lv); } catch(e){ fail(`${skill.id} L${lv}: crashed: ${e.message}`); break; }
+          check(skill, lv, q);
+        }
+        // a round of 10 can be made without too many repeats
+        const round = L4.makeRound(skill, lv), keys = new Set(round.map(q => q.key));
+        if (keys.size < 8) fail(`${skill.id} L${lv}: only ${keys.size} different questions in a round of 10`);
+      }
+    }
+    // every word and every possible misspelling of the word lists, not only the ones picked at random
+    if (skill.entries && skill.misspellings) for (const e of skill.entries){ addTextAll(e.word); if (e.plural) addTextAll(e.plural); skill.misspellings(e).forEach(w => miss.add(w)); }
+    if (skill.names) skill.names.forEach(addTextAll);
+    if (skill.words) skill.words.forEach(addTextAll);
+  }
+}
+out.push(`${fails ? "FAIL" : "PASS"} ${count} questions checked`);
+out.push("WORDS " + JSON.stringify([...words]));
+out.push("MISSPELL " + JSON.stringify([...miss]));
+out.push(`DONE ${count - fails} passed, ${fails} failed`);
+document.getElementById("out").textContent = out.join("\n");
+</script>
+</body>
+</html>

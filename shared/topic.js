@@ -1,7 +1,8 @@
 /* A topic page: one tab per skill, a rule card ("Recuerda"), 3 levels per skill, a ⭐ for passing level 3.
    Each topic folder has a skills.js that adds a topic to L4.TOPICS:
-     { id, title, emoji, skills:[ { id, name, emoji, desc, rule, levels:[{name, desc} ×3], make(level) → question } ] }
+     { id, title, emoji, skills:[ { id, name, emoji, desc, rule, note, levels:[{name, desc} ×3], make(level) → question } ] }
    rule is a short HTML explanation of the rule, shown before playing (there is no teacher to explain it).
+   note is an optional function returning a short line about the device (e.g. whether it can read aloud).
    index.html calls L4.openTopic(id). */
 (function(){
 "use strict";
@@ -49,6 +50,7 @@ function renderTopic(){
   const acc = st.seen ? Math.round(st.correct / st.seen * 100) : 0;
   $("#skillPanel").innerHTML = `<h2>${cur.emoji} ${cur.name} ${st.star ? "⭐" : ""}</h2>
     <p class="muted">${cur.desc}</p>
+    ${cur.note ? `<p class="note">${cur.note()}</p>` : ""}
     ${cur.rule ? `<details class="rule" ${st.seen ? "" : "open"}><summary>📘 Recuerda</summary><div>${cur.rule}</div></details>` : ""}
     <div class="llist">${cur.levels.map((L, i) => {
       const n = i + 1, locked = n > st.level, done = n < st.level || (n === 3 && st.star);

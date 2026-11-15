@@ -10,7 +10,7 @@ It's built like the maths app (`~/math`, [jmg2014.github.io/math](https://jmg201
 
 | Topic | Address | Status |
 |---|---|---|
-| ✏️ Ortografía | `ortografia/` | Coming soon |
+| ✏️ Ortografía | `ortografia/` | ✅ Built: 13 skills |
 | Á Tildes | `tildes/` | Coming soon |
 | 🧩 Gramática | `gramatica/` | Coming soon |
 | 🔤 Vocabulario | `vocabulario/` | Coming soon |
@@ -55,6 +55,8 @@ shared/engine.js        question engine: inputs (choice, gap, text keyboard, wor
 shared/progress.js      saving, levels, stars, daily mix, backup
 shared/topic.js         a topic page: skill tabs, rule card, 3 levels, stars
 shared/words.js         shared word bank (checked against the Spanish dictionary)
+shared/silabas.js       splitting words into syllables
+ortografia/             the Ortografía topic: index.html + skills.js
 shared/style.css        the look, light and dark mode
 tests/                  automated checks and a demo of every input
 ```
@@ -68,6 +70,8 @@ tests/                  automated checks and a demo of every input
 | `words` | taps the right words in a sentence |
 | `order` | taps cards in the right order (words, syllables, letters) |
 
+A question can also have `say`: the device reads it aloud with its Spanish voice (dictation), with a 🔊 button to repeat it.
+
 **Accents:** while the Tildes skill *¿Lleva tilde?* hasn't been mastered, an answer whose only mistake is the
 accent counts as right, with a "Casi" note, and comes back later. Once it's mastered, accents count.
 
@@ -76,6 +80,10 @@ accent counts as right, with a "Casi" note, and comes back later. Once it's mast
 pip install spylls              # once: a Hunspell spell checker in Python
 python3 tests/check.py          # runs tests/engine.html in headless Chrome and spell-checks every word
 ```
-- **What it checks:** every input and the progress code (`tests/engine.html`), and every word in the word bank and in the generated answers.
+- **What it checks:**
+  - every input and the progress code (`tests/engine.html`)
+  - the syllable splitter against 119 known words (`tests/silabas.html`)
+  - thousands of generated questions from every skill and level (`tests/skills.html`): each has exactly one right answer, and the capitals are worked out again independently
+  - every word the child sees as right, and every misspelling the app can show (none may be a real word)
 - **Spelling:** words are checked against the es_ES dictionary (`/usr/share/hunspell/es_ES`) and `/usr/share/dict/spanish`. A correct word that both are missing goes in `tests/extra_words.txt`, after checking it on [dle.rae.es](https://dle.rae.es).
 - **Demo:** open `tests/inputs.html` to try each input by hand.
