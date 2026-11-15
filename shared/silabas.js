@@ -66,4 +66,47 @@ L4.silabas = function(word){
   out.push(u.slice(from).map(x => x.s).join(""));
   return out.filter(Boolean);
 };
+
+/* The stressed syllable (sílaba tónica) of a correctly written word, counted from 0.
+   - A written accent marks it.
+   - Without one, the accent rules say where it is: words ending in a vowel, n or s stress the next-to-last syllable
+     (casa, joven, martes); words ending in any other letter stress the last one (reloj, papel, estoy). */
+const ACCENTED = "áéíóú";
+L4.tonica = function(word){
+  const s = L4.silabas(word);
+  const marked = s.findIndex(x => [...x.toLowerCase()].some(c => ACCENTED.includes(c)));
+  if (marked >= 0) return marked;
+  if (s.length === 1) return 0;
+  const last = word.toLowerCase().slice(-1);
+  return "aeiouns".includes(last) ? s.length - 2 : s.length - 1;
+};
+/* "aguda", "llana", "esdrújula" or "sobresdrújula" (by where the stress falls, counted from the end) */
+L4.tipoAcento = function(word){
+  const n = L4.silabas(word).length, t = L4.tonica(word), fromEnd = n - 1 - t;
+  return ["aguda", "llana", "esdrújula", "sobresdrújula"][Math.min(fromEnd, 3)];
+};
+/* Does the general rule give this word a written accent? (hiatus words like día, país follow their own rule) */
+L4.reglaTilde = function(tipo, word){
+  const last = word.toLowerCase().slice(-1), vns = "aeiouáéíóúns".includes(last);
+  return tipo === "aguda" ? vns : tipo === "llana" ? !vns : true;
+};
+/* the vowel of a syllable that carries the accent: the strong vowel (a, e, o) of a diphthong, otherwise the last vowel */
+L4.vocalTonica = function(syl){
+  const l = syl.toLowerCase();
+  let at = -1;
+  for (let i = 0; i < l.length; i++) if ("aeoáéó".includes(l[i])) at = i;
+  if (at < 0) for (let i = 0; i < l.length; i++) if ("iuíú".includes(l[i]) && !(l[i] === "u" && i > 0 && "qg".includes(l[i - 1]))) at = i;
+  return at;
+};
+const ADD = { a:"á", e:"é", i:"í", o:"ó", u:"ú", A:"Á", E:"É", I:"Í", O:"Ó", U:"Ú" };
+const REMOVE = { á:"a", é:"e", í:"i", ó:"o", ú:"u", Á:"A", É:"E", Í:"I", Ó:"O", Ú:"U" };
+L4.sinTilde = w => w.replace(/[áéíóúÁÉÍÓÚ]/g, c => REMOVE[c]);
+/* the word with a written accent on syllable k (and no other accent) */
+L4.conTildeEn = function(word, k){
+  const s = L4.silabas(L4.sinTilde(word));
+  const v = L4.vocalTonica(s[k]);
+  if (v < 0) return null;
+  s[k] = s[k].slice(0, v) + (ADD[s[k][v]] || s[k][v]) + s[k].slice(v + 1);
+  return s.join("");
+};
 })();

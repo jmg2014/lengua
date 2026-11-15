@@ -10,6 +10,7 @@
 <script src="../shared/silabas.js"></script>
 <script src="../shared/topic.js"></script>
 <script src="../ortografia/skills.js"></script>
+<script src="../tildes/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -22,9 +23,9 @@ const fail = m => { fails++; if (fails < 60) out.push("FAIL " + m); };
 const words = new Set(), miss = new Set();
 const addTextAll = t => String(t).split(/[\s\-]+/).forEach(w => { if (w) words.add(w); });
 function check(skill, lv, q){
-  // the hyphen skill shows pieces of words (mari-posa) and the capitals skill shows names in lower case on purpose:
+  // the hyphen and syllable skills show pieces of words (mari-posa) and the capitals skill shows names in lower case on purpose:
   // their whole words are checked from skill.words and skill.names instead
-  const addText = skill.id === "or-guion" ? () => {} : skill.id === "or-may" ? t => { if (/[A-ZÁÉÍÓÚÑ]/.test(t)) addTextAll(t); } : addTextAll;
+  const addText = ["or-guion", "ti-silabas", "ti-tonica"].includes(skill.id) ? () => {} : skill.id === "or-may" ? t => { if (/[A-ZÁÉÍÓÚÑ]/.test(t)) addTextAll(t); } : addTextAll;
   const where = `${skill.id} L${lv} "${(q.text || "").replace(/<[^>]+>/g, "")}"`;
   count++;
   if (!q.text) fail(where + ": no text");
@@ -83,6 +84,33 @@ function checkCapitals(where, q){
   });
   if (new Set(w.filter(t => LOWER.has(t))).size !== w.filter(t => LOWER.has(t)).length) fail(`${where}: the same day/month/language twice`);
 }
+
+/* Tildes: every hand-sorted word list must agree with the accent rules */
+(function(){
+  const T = L4.TOPICS.find(t => t.id === "tildes"); if (!T) return;
+  const want = { agudaT:["aguda", true], aguda:["aguda", false], llanaT:["llana", true], llana:["llana", false], esdrujula:["esdrújula", true] };
+  for (const [g, [type, tilde]] of Object.entries(want)){
+    for (const w of T.W[g]){
+      const has = /[áéíóú]/.test(w);
+      if (L4.tipoAcento(w) !== type) fail(`tildes: ${w} is in ${g} but the rules say ${L4.tipoAcento(w)}`);
+      if (has !== tilde) fail(`tildes: ${w} is in ${g} but ${has ? "has" : "has no"} accent`);
+      if (L4.reglaTilde(type, w) !== tilde) fail(`tildes: ${w}: the rule for ${type}s disagrees with its accent`);
+      addTextAll(w);
+    }
+  }
+  const d = T.skills.find(s => s.id === "ti-diptongo");
+  d.lists.DIPTONGO.forEach(w => { if (d.isHiato(w)) fail(`tildes: ${w} is listed as diptongo but splits as ${L4.silabas(w).join("-")}`); addTextAll(w); });
+  d.lists.HIATO.forEach(w => { if (!d.isHiato(w)) fail(`tildes: ${w} is listed as hiato but splits as ${L4.silabas(w).join("-")}`); addTextAll(w); });
+  d.lists.HIATO_TILDE.forEach(w => { if (!/[íú]/.test(w) || !d.isHiato(w)) fail(`tildes: ${w} should be a hiatus with í or ú`); });
+  const r = T.skills.find(s => s.id === "ti-regla");
+  r.ruleWords().forEach(w => r.wrongForms(w).forEach(x => miss.add(x)));
+  const dc = T.skills.find(s => s.id === "ti-diacritica");
+  for (const [, sents] of dc.sentences) for (const line of sents){
+    const [sent, ans] = line.split("=");
+    if ((sent.match(/_/g) || []).length !== 1) fail(`tildes: "${sent}" needs exactly one gap`);
+    addTextAll(sent.replace("_", ans));
+  }
+})();
 
 for (const T of L4.TOPICS){
   for (const skill of T.skills){

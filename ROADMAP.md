@@ -177,13 +177,17 @@ and every mistake shows the rule again.
 - **Checks:** every word is in the es_ES dictionary, and none of the 621 possible misspellings is a real word.
   The check removed 15 words whose misspelling is a real word, e.g. *vela* (*bela*), *hierba* (*hierva*), *horno* (*orno*).
 
-### Phase 2 – Tildes (accents, Units 1–4 of the book)
-- [ ] Sílabas: split a word into syllables (`order`/tap input)
-- [ ] Sílaba tónica: tap the stressed syllable
-- [ ] Agudas, llanas y esdrújulas: classify the word
-- [ ] ¿Lleva tilde?: apply the rule, i.e. agudas ending in a vowel, -n or -s; llanas that don't; all esdrújulas
-- [ ] Diptongos e hiatos: spot them (*cuento* / *día*), and the accent that breaks a diphthong (*María*, *río*)
-- [ ] Tilde diacrítica, common cases only: tú/tu, él/el, sí/si, más/mas, and qué/cómo/dónde in questions
+### Phase 2 – Tildes (accents, Units 1–4 of the book) ✅
+- [x] Sílabas: count them (monosílaba… polisílaba), choose the right split, write it with hyphens
+- [x] Sílaba tónica: tap the stressed syllable (the device says the word, if it can)
+- [x] Agudas, llanas y esdrújulas: classify the word, first with the accent as a clue, then without
+- [x] ¿Lleva tilde?: agudas, then llanas, then all words typed with the accent counting. **Its ⭐ makes accents count in the whole app.**
+- [x] Diptongos e hiatos: which is it, find the hiatus, and the accent that breaks a diphthong (día, país, baúl)
+- [x] Tilde diacrítica: tú/tu, él/el, mí/mi; sí/si, té/te, está/esta; qué, cómo, dónde, cuándo (in hand-written sentences)
+- **Checks:**
+  - Stress finder (`L4.tonica`, `L4.tipoAcento` in `shared/silabas.js`): tested on hand-labelled words.
+  - Word lists: every hand-sorted list is checked against the accent rules.
+  - "¿Lleva tilde?": leaves out words where a wrong way of writing them is a real word (caminó, libró, lampara, futbol…).
 
 ### Phase 3 – Gramática
 - [ ] La oración: sujeto y predicado (subject and predicate). Tap the subject; find the verb that agrees with it.

@@ -30,7 +30,28 @@ for (const pair of KNOWN.split(/\s*[|\n]\s*/)){
   if (got !== want){ fails++; out.push(`FAIL silabas: ${word} → ${got} (want ${want})`); }
   else out.push(`PASS silabas: ${word} → ${got}`);
 }
-out.push(`DONE ${out.length - fails} passed, ${fails} failed`);
+/* stressed syllable, written in capitals, and the type (a aguda, l llana, e esdrújula), labelled by hand */
+const STRESS = `ca-MIÓN a | ra-TÓN a | re-LOJ a | pa-PEL a | ciu-DAD a | se-ÑOR a | co-MER a | es-TOY a | jer-SEY a | a-ZUL a | sa-LÍ a
+CA-sa l | ME-sa l | MAR-tes l | JO-ven l | e-XA-men l | ÁR-bol l | LÁ-piz l | FÁ-cil l | a-ZÚ-car l | CÉS-ped l | LLU-via l | CIE-lo l
+PÁ-ja-ro e | MÚ-si-ca e | SÁ-ba-do e | te-LÉ-fo-no e | mur-CIÉ-la-go e | ÁR-bo-les e | JÓ-ve-nes e | o-CÉ-a-no e
+DÍ-a l | RÍ-o l | pa-ÍS a | ba-ÚL a | ma-ÍZ a | san-DÍ-a l | le-ÓN a | po-E-ta l | RUI-do l | cui-DA-do l | gui-TA-rra l
+pin-GÜI-no l | cua-DER-no l | a-ves-TRUZ a | can-CIÓN a | au-to-BÚS a | ham-bur-GUE-sa l`;
+const TYPE = { a:"aguda", l:"llana", e:"esdrújula" };
+let sfails = 0, sn = 0;
+for (const item of STRESS.split(/\s*[|\n]\s*/)){
+  let [syl, t] = item.trim().split(/\s+/);
+  const parts = syl.split("-"), want = parts.findIndex(p => p !== p.toLowerCase() && p.toUpperCase() === p);
+  const word = parts.join("").toLowerCase();
+  const got = L4.tonica(word), type = L4.tipoAcento(word);
+  sn++;
+  if (got !== want || type !== TYPE[t]){ sfails++; out.push(`FAIL tonica: ${word} → syllable ${got} ${type} (want ${want} ${TYPE[t]})`); }
+  else out.push(`PASS tonica: ${word} → ${type}`);
+}
+fails += sfails;
+/* adding and removing accents */
+const ACC = [["camion", 1, "camión"], ["arbol", 0, "árbol"], ["guitarra", 0, "guítarra"], ["cuaderno", 0, "cuáderno"], ["piano", 0, "piáno"], ["ruido", 0, "ruído"]];
+for (const [w, k, want] of ACC){ const got = L4.conTildeEn(w, k); if (got !== want){ fails++; out.push(`FAIL conTildeEn ${w} ${k} → ${got} (want ${want})`); } else out.push(`PASS conTildeEn ${w} → ${got}`); }
+out.push(`DONE ${out.filter(l => l.startsWith("PASS")).length} passed, ${fails} failed`);
 document.getElementById("out").textContent = out.join("\n");
 </script>
 </body>

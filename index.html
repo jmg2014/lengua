@@ -52,6 +52,7 @@
 <script src="shared/silabas.js"></script>
 <!-- every topic's skills.js goes here as it is built: for progress, the curriculum map and the daily mix -->
 <script src="ortografia/skills.js"></script>
+<script src="tildes/skills.js"></script>
 <script>
 (function(){
 "use strict";
@@ -60,7 +61,7 @@ const { $, prog:P, shuffle } = L4;
 /* The topics, in the order of the roadmap. built:false shows "Próximamente". */
 const TOPICS = [
   { id:"ortografia",  emoji:"✏️", name:"Ortografía",            path:"ortografia/",  desc:"b/v, g/j, ll/y, r/rr, h, c/qu/z, mayúsculas, español e inglés, dictado" },
-  { id:"tildes",      emoji:'<span class="letter">Á</span>', name:"Tildes",               path:"tildes/",      desc:"Sílabas, sílaba tónica, agudas, llanas y esdrújulas, diptongos e hiatos" },
+  { id:"tildes",      emoji:'<span class="letter">Á</span>', name:"Tildes",               path:"tildes/",      desc:"Sílabas, sílaba tónica, agudas, llanas y esdrújulas, hiatos, tú/tu…" },
   { id:"gramatica",   emoji:"🧩", name:"Gramática",             path:"gramatica/",   desc:"Sujeto y predicado, sustantivos, determinantes, adjetivos, verbos…" },
   { id:"vocabulario", emoji:"🔤", name:"Vocabulario",           path:"vocabulario/", desc:"Sinónimos, antónimos, prefijos, sufijos, familias, frases hechas" },
   { id:"oraciones",   emoji:"❓", name:"Oraciones y puntuación", path:"oraciones/",   desc:"¿? ¡!, punto, coma, dos puntos, ordenar oraciones" },
