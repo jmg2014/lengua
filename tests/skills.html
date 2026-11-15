@@ -13,6 +13,7 @@
 <script src="../tildes/skills.js"></script>
 <script src="../gramatica/skills.js"></script>
 <script src="../vocabulario/skills.js"></script>
+<script src="../oraciones/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -60,6 +61,15 @@ function check(skill, lv, q){
   }
   if (m === "order"){
     if (!q.items || q.items.length < 2) fail(where + ": needs 2+ cards");
+    addText(q.items.join(" "));
+  }
+  if (m === "punct"){
+    const marks = Object.values(q.answer);
+    if (!marks.length) fail(where + ": no marks to place");
+    marks.forEach(mk => { if (!q.marks.includes(mk)) fail(`${where}: the mark ${mk} isn't offered`); });
+    Object.keys(q.answer).forEach(k => { const i = +k.slice(1); if (!(i >= 0 && i < q.words.length) || !/^[ab]$/.test(k[0])) fail(`${where}: bad slot ${k}`); });
+    if (q.words.some(w => /[.,;:?!¿¡…]/.test(w))) fail(`${where}: a word still has punctuation`);
+    addText(L4.punctText(q.words, q.answer));
   }
   if (skill.id === "or-may") checkCapitals(where, q);
   if (q.tagged) checkAgreement(where, q.tagged);

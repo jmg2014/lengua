@@ -172,6 +172,26 @@ for (let i = 0; i < 200; i++){
 L4.stopSession();
 ok(sameAsAnswer === 0, "order: cards never start in the right order (200 tries)");
 
+/* ---- punct ---- */
+let pf = L4.punctFrom("Hola, Marta. ¿Cómo estás?");
+ok(pf.words.join(" ") === "Hola Marta Cómo estás" && pf.answer.a0 === "," && pf.answer.a1 === "." && pf.answer.b2 === "¿" && pf.answer.a3 === "?", "punct: punctFrom reads the marks");
+ok(L4.punctText(pf.words, pf.answer) === "Hola, Marta. ¿Cómo estás?", "punct: punctText writes them back");
+const mark = m => document.querySelector(`#choices [data-m="${m}"]`).click();
+const gapAt = g => document.querySelector(`#board [data-g="${g}"]`).click();
+const PQ = () => Object.assign(L4.punctFrom("Hola, Marta. ¿Cómo estás?"), { input:"punct", text:"Pon los signos", marks:[",", ".", "¿", "?"] });
+r = await play(PQ(), () => { mark(","); gapAt(1); mark("."); gapAt(2); mark("¿"); gapAt(2); mark("?"); gapAt(4); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok" && r.res[0].givenText === "Hola, Marta. ¿Cómo estás?", "punct: a full stop and ¿ share the same space");
+r = await play(PQ(), () => { mark(","); gapAt(1); mark("."); gapAt(2); mark("?"); gapAt(4); document.querySelector("[data-check]").click(); });
+ok(r.result === "wrong" && document.querySelector("#board .pm.missed"), "punct: a missing ¿ is wrong and shown");
+r = await play(PQ(), () => { mark(","); gapAt(1); gapAt(1); gapAt(2); mark("."); gapAt(1); mark("¿"); gapAt(2); mark("?"); gapAt(4); document.querySelector("[data-check]").click(); });
+ok(r.result === "wrong", "punct: tapping again removes a mark (and a misplaced one is wrong)");
+r = await play(PQ(), () => { mark("¿"); gapAt(4); mark("."); gapAt(0); mark(","); gapAt(1); mark("."); gapAt(2); mark("¿"); gapAt(2); mark("?"); gapAt(4); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok", "punct: ¿ at the end and . at the start are ignored");
+let none = true;
+r = await play(PQ(), () => { document.querySelector("[data-check]").click(); none = !document.querySelector("#feedback").textContent;
+  mark(","); gapAt(1); mark("."); gapAt(2); mark("¿"); gapAt(2); mark("?"); gapAt(4); document.querySelector("[data-check]").click(); });
+ok(none && r.result === "ok", "punct: Comprobar with no marks does nothing");
+
 /* ---- wrong answer waits for Siguiente ---- */
 let finished = false;
 L4.startSession({ title:"t", questions:[{ input:"choice", text:"?", choices:["a", "b"], answer:"a" }], waitOnWrong:true, onFinish(){ finished = true; } });

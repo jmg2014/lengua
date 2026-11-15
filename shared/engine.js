@@ -15,6 +15,10 @@
                  answer = list of the indexes of the right words. one: true → the first tap answers (one right word)
        "order"   tap cards to put them in order. items = the cards in the RIGHT order (the engine shuffles them);
                  joiner = what goes between them when shown as text (default " "; "" for letters or syllables)
+       "punct"   place punctuation: choose a mark, then tap the space where it goes. words = the words without punctuation;
+                 marks = the marks to choose from; answer = { a3:".", b4:"¿" } (a = after word 3, b = before word 4).
+                 Closing marks (. , ; : ? ! …) go after the word before the space, opening marks (¿ ¡) before the word after it.
+                 L4.punctFrom("¿Qué hora es?") makes words and answer from a written sentence.
      fills     for "gap": what a choice puts in the gap when that isn't the choice's text, e.g. { "sin h": "" }
      say       text the device reads aloud (Spanish voice) when the question starts, with a 🔊 button to hear it again
      check     optional function(given) → true/false, to accept more than one answer
@@ -202,6 +206,7 @@ function solutionOf(q){
   if (m === "gap") return q.gap.replace(/_+/, fillOf(q, q.answer));
   if (m === "words") return q.answer.map(i => q.words[i]).join(", ");
   if (m === "order") return q.items.join(q.joiner === undefined ? " " : q.joiner);
+  if (m === "punct") return L4.punctText(q.words, q.answer);
   return answersOf(q)[0];
 }
 L4.solutionOf = solutionOf;
@@ -249,6 +254,46 @@ function renderWords(q){
     ? `<span class="mark">${esc(w)}</span>`
     : `<button class="word ${S.picked.has(i) ? "on" : ""}" data-w="${i}">${esc(w)}</button>`).join("")}</div>`;
 }
+/* ---- punctuation ---- */
+const OPENING = "¿¡";
+L4.punctFrom = function(sentence){
+  const words = [], answer = {};
+  sentence.trim().split(/\s+/).forEach((tok, i) => {
+    const m = /^([¿¡]*)(.*?)([.,;:?!…]*)$/.exec(tok);
+    if (m[1]) answer["b" + i] = m[1];
+    if (m[3]) answer["a" + i] = m[3];
+    words.push(m[2]);
+  });
+  return { words, answer };
+};
+L4.punctText = (words, map) => words.map((w, i) => (map["b" + i] || "") + w + (map["a" + i] || "")).join(" ");
+function renderPunct(q, done){
+  const n = q.words.length, slot = (key, g) => {
+    const v = S.punct[key], want = q.answer[key];
+    let cls = "pm";
+    if (done) cls += v === want ? (v ? " right" : "") : v ? " wrongpick" : " missed";
+    const shown = done && !v && want ? want : v;
+    return shown ? `<span class="${cls}">${esc(shown)}</span>` : "";
+  };
+  let html = "";
+  for (let g = 0; g <= n; g++){
+    const inner = (g > 0 ? slot("a" + (g - 1)) : "") + (g < n ? slot("b" + g) : "");
+    html += `<button class="gapbtn ${inner ? "full" : ""}" data-g="${g}" ${done ? "disabled" : ""} aria-label="Hueco ${g + 1}">${inner || "<i></i>"}</button>`;
+    if (g < n) html += `<span class="pword">${esc(q.words[g])}</span>`;
+  }
+  $("#board").innerHTML = `<div class="psentence">${html}</div>`;
+  if (!done) $("#choices").innerHTML = `<div class="marks">${q.marks.map(m => `<button class="markbtn ${m === S.mark ? "on" : ""}" data-m="${esc(m)}">${esc(m)}</button>`).join("")}</div>
+    <p class="muted hint">Elige un signo y toca el hueco donde va. Tócalo otra vez para quitarlo.</p>
+    <button class="choice check" data-check>Comprobar ✓</button>`;
+}
+function tapGap(q, g){
+  const m = S.mark, open = OPENING.includes(m), n = q.words.length;
+  if (open ? g >= n : g === 0) return;                 // ¿ can't go at the end, a full stop can't go at the start
+  const key = open ? "b" + g : "a" + (g - 1);
+  if (S.punct[key] === m) delete S.punct[key]; else S.punct[key] = m;
+  renderPunct(q);
+}
+
 function renderOrder(q){
   const j = q.joiner === undefined ? " " : q.joiner;
   $("#board").innerHTML =
@@ -266,11 +311,11 @@ function nextQuestion(){
   $("#qtext").innerHTML = q.text || "";
   $("#qpic").innerHTML = (q.say ? `<button class="sayBtn" id="sayBtn" aria-label="Escuchar otra vez">🔊</button>` : "") + (q.picture || "");
   if (q.say) setTimeout(() => { if (S && S.questions[S.i] === q) L4.say(q.say); }, 250);
-  Object.assign(S, { typed:"", shift:false, dead:null, choice:undefined, picked:new Set(), built:[], pool:[] });
+  Object.assign(S, { typed:"", shift:false, dead:null, choice:undefined, picked:new Set(), built:[], pool:[], punct:{}, mark:(q.marks || [])[0] });
   const ans = $("#answer"), board = $("#board"), ch = $("#choices"), kbd = $("#kbd");
   ans.className = "answer"; ans.innerHTML = ""; board.innerHTML = ""; ch.innerHTML = "";
   ans.style.display = m === "text" || m === "gap" ? "" : "none";
-  board.style.display = m === "words" || m === "order" ? "" : "none";
+  board.style.display = m === "words" || m === "order" || m === "punct" ? "" : "none";
   kbd.style.display = m === "text" ? "" : "none";
   ch.className = "choices" + (m === "gap" ? " row" : "");
   if (m === "choice" || m === "gap")
@@ -284,6 +329,7 @@ function nextQuestion(){
     renderWords(q);
     if (!q.one) ch.innerHTML = `<button class="choice check" data-check>Comprobar ✓</button>`;
   }
+  if (m === "punct") renderPunct(q);
   if (m === "order"){
     // shuffle the cards, but never show them already in the right order
     const j = q.joiner === undefined ? " " : q.joiner, right = q.items.join(j);
@@ -304,6 +350,7 @@ function readGiven(q){
   if (m === "text") return L4.tidy(S.typed) === "" ? null : L4.tidy(S.typed);
   if (m === "words") return S.picked.size ? [...S.picked].sort((a, b) => a - b) : null;
   if (m === "order") return S.built.length ? S.built.map(p => S.pool[p]) : null;
+  if (m === "punct") return Object.keys(S.punct).length ? Object.assign({}, S.punct) : null;
   return null;
 }
 function givenText(q, g){
@@ -312,6 +359,7 @@ function givenText(q, g){
   if (m === "words") return g.map(i => q.words[i]).join(", ");
   if (m === "order") return g.join(q.joiner === undefined ? " " : q.joiner);
   if (m === "gap") return q.gap.replace(/_+/, fillOf(q, g));
+  if (m === "punct") return L4.punctText(q.words, g);
   return String(g);
 }
 /* → "ok", "accent" or "wrong" */
@@ -329,6 +377,10 @@ function judge(q, g){
     return want.length === g.length && want.every((x, i) => x === g[i]) ? "ok" : "wrong";
   }
   if (m === "order") return g.join("\u0001") === q.items.join("\u0001") ? "ok" : "wrong";
+  if (m === "punct"){
+    const keys = new Set([...Object.keys(g), ...Object.keys(q.answer)]);
+    return [...keys].every(k => g[k] === q.answer[k]) ? "ok" : "wrong";
+  }
   return answersOf(q).includes(g) ? "ok" : "wrong";
 }
 
@@ -364,6 +416,7 @@ function submit(){
     });
     $("#choices").innerHTML = "";
   }
+  if (m === "punct"){ renderPunct(q, true); $("#choices").innerHTML = ""; }
   if (m === "order"){
     document.querySelector("#board .built").classList.add(ok ? "right" : "wrong");
     document.querySelectorAll("#board button").forEach(b => { b.disabled = true; });
@@ -445,6 +498,8 @@ $("#kbd").addEventListener("pointerdown", e => {
 });
 $("#choices").addEventListener("click", e => {
   const b = e.target.closest("[data-c]"); if (b){ choose(+b.dataset.c); return; }
+  const mk = e.target.closest("[data-m]");
+  if (mk && S && !S.busy){ S.mark = mk.dataset.m; renderPunct(S.questions[S.i]); return; }
   if (e.target.closest("[data-check]") && S && !S.busy && readGiven(S.questions[S.i]) !== null) submit();
 });
 $("#board").addEventListener("click", e => {
@@ -458,6 +513,8 @@ $("#board").addEventListener("click", e => {
     w.classList.toggle("on", S.picked.has(i));
     return;
   }
+  const gp = e.target.closest("[data-g]");
+  if (m === "punct" && gp){ tapGap(q, +gp.dataset.g); return; }
   const p = e.target.closest("[data-p]"), b = e.target.closest("[data-b]");
   if (m === "order" && p){ S.built.push(+p.dataset.p); renderOrder(q); }
   if (m === "order" && b){ S.built.splice(+b.dataset.b, 1); renderOrder(q); }
@@ -481,7 +538,7 @@ document.addEventListener("keydown", e => {
     }
     return;
   }
-  if (e.key === "Enter" && (m === "words" || m === "order") && readGiven(q) !== null){ e.preventDefault(); submit(); }
+  if (e.key === "Enter" && (m === "words" || m === "order" || m === "punct") && readGiven(q) !== null){ e.preventDefault(); submit(); }
 });
 $("#quitBtn").addEventListener("click", () => { stopSession(); if (L4.onQuit) L4.onQuit(); });
 

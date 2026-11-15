@@ -224,13 +224,17 @@ preposición, adverbio) and with correct agreement; most skills ask about those 
   - Lists: no word is in two synonym pairs or two themes, and compound and prefixed words really are the two parts joined (or say what changes).
   - Hand-checked list: diminutives like *gatito*, which dictionaries don't list, are kept in `tests/extra_words.txt`.
 
-### Phase 5 – Oraciones y puntuación
-- [ ] ¿ ? and ¡ !, including the opening marks Spanish needs (English doesn't have them)
-- [ ] El punto, the capital letter after it, and los puntos suspensivos (…)
-- [ ] La coma (lists, addressing someone) and el punto y coma, kept simple (`punct` input)
-- [ ] Dos puntos: before a list, and after the greeting in a letter (*Querida abuela:*)
-- [ ] Ordenar palabras: build a correct sentence from shuffled words (`order` input)
-- [ ] Avoiding repetition: choosing a synonym or a pronoun
+### Phase 5 – Oraciones y puntuación ✅
+6 skills, with hand-written sentences. A new `punct` input: choose a mark and tap the space where it goes
+(closing marks stick to the word before, ¿ ¡ to the word after, so "Marta. ¿Cómo…" works).
+- [x] ¿? y ¡!: choose the right one (not "Qué hora es?" like in English), place them, and two sentences where one asks or exclaims
+- [x] El punto: place the full stops, capital letter after a full stop, and puntos suspensivos
+- [x] La coma: in lists (not before *y*), when calling someone (*Lucía, ven aquí*), and a simple punto y coma
+- [x] Los dos puntos: after a letter greeting (*Querida abuela:*, not a comma as in English) and before a list
+- [x] Ordenar la oración: shuffled words from the Gramática sentence maker; the capital letter and the full stop are clues
+      (*Mi perro corre lento…* is accepted as well as *Mi perro lento corre…*)
+- [x] Sin repetir: choose the pronoun or synonym that avoids repeating a word (and agrees)
+- (Sentence types were done in Phase 3, Gramática.)
 
 ### Phase 6 – Diccionario
 - [ ] Alphabetical order by the 1st, 2nd and 3rd letters (`order` input)

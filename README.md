@@ -14,7 +14,7 @@ It's built like the maths app (`~/math`, [jmg2014.github.io/math](https://jmg201
 | Á Tildes | `tildes/` | ✅ Built: 6 skills |
 | 🧩 Gramática | `gramatica/` | ✅ Built: 12 skills |
 | 🔤 Vocabulario | `vocabulario/` | ✅ Built: 8 skills |
-| ❓ Oraciones y puntuación | `oraciones/` | Coming soon |
+| ❓ Oraciones y puntuación | `oraciones/` | ✅ Built: 6 skills |
 | 📖 Diccionario | `diccionario/` | Coming soon |
 | 👓 Lectura | `lectura/` | Coming soon |
 | 🎭 Literatura y lenguas | `literatura/` | Coming soon |
@@ -51,7 +51,7 @@ The maths app is on the same address, so the two apps share the browser's storag
 ```
 index.html              main page: topic tiles, Mezcla del día, backup
 sw.js                   offline support (add new files to FILES and change the number in CACHE)
-shared/engine.js        question engine: inputs (choice, gap, text keyboard, words, order), feedback, results
+shared/engine.js        question engine: inputs (choice, gap, text keyboard, words, order, punct), feedback, results
 shared/progress.js      saving, levels, stars, daily mix, backup
 shared/topic.js         a topic page: skill tabs, rule card, 3 levels, stars
 shared/words.js         shared word bank (checked against the Spanish dictionary)
@@ -69,6 +69,7 @@ tests/                  automated checks and a demo of every input
 | `text` | types on the on-screen Spanish keyboard: ñ, **´** then a vowel for á é í ó ú, **¨** then u for ü, ⇧ for a capital |
 | `words` | taps the right words in a sentence |
 | `order` | taps cards in the right order (words, syllables, letters) |
+| `punct` | chooses a punctuation mark and taps the space where it goes |
 
 A question can also have `say`: the device reads it aloud with its Spanish voice (dictation), with a 🔊 button to repeat it.
 
