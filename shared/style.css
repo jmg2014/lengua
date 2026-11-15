@@ -174,3 +174,5 @@ h3{font-size:1.05rem;margin:1.2em 0 .5em}
 .markbtn{min-width:64px;height:64px;font-size:2rem;font-weight:800;border:3px solid var(--line);border-radius:16px;background:var(--key);color:var(--key-ink);box-shadow:0 4px 0 var(--line)}
 .markbtn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .choices .hint{margin:0;text-align:center}
+.qpic .entry{font-size:clamp(1.05rem,3vw,1.3rem);line-height:1.5;text-align:left;max-width:640px;background:var(--card);border:2px solid var(--line);border-left:6px solid var(--accent);border-radius:12px;padding:10px 14px}
+.qpic .entry span{display:block}

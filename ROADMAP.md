@@ -236,11 +236,12 @@ preposición, adverbio) and with correct agreement; most skills ask about those 
 - [x] Sin repetir: choose the pronoun or synonym that avoids repeating a word (and agrees)
 - (Sentence types were done in Phase 3, Gramática.)
 
-### Phase 6 – Diccionario
-- [ ] Alphabetical order by the 1st, 2nd and 3rd letters (`order` input)
-- [ ] Palabras guía: "¿Está *gato* en la página que va de *galleta* a *gente*?"
-- [ ] Dictionary form: *corrían* → correr, *blancas* → blanco
-- [ ] Choosing the meaning that fits the sentence (a short dictionary entry with numbered meanings)
+### Phase 6 – Diccionario ✅
+- [x] Orden alfabético by the 1st, 2nd and 3rd letter (ñ after n, accents don't count, ch = c + h)
+- [x] Palabras guía: is the word on this page? which of three pages?
+- [x] La forma del diccionario: nouns → singular, adjectives → masculine singular, verbs → infinitive (*corrían* → *correr*)
+- [x] Elige el significado: a numbered dictionary entry; choose the meaning (acepción) that fits the sentence
+- **Checks:** the order and the guide-word answers are worked out again with a separate simple comparison of the Spanish alphabet.
 
 ### Phase 7 – Lectura
 - [ ] Comprensión: a short generated text (character + place + problem + ending, from templates) followed by

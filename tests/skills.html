@@ -14,6 +14,7 @@
 <script src="../gramatica/skills.js"></script>
 <script src="../vocabulario/skills.js"></script>
 <script src="../oraciones/skills.js"></script>
+<script src="../diccionario/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -200,6 +201,33 @@ function checkAgreement(where, toks){
   S("vo-frases").frases.forEach(r => r.forEach(addTextAll));
   const ca = S("vo-campo"), all = new Map();
   Object.entries(ca.campos).forEach(([n, ws]) => ws.forEach(w => { addTextAll(w); if (all.has(w)) fail(`campo: ${w} is in ${all.get(w)} and ${n}`); all.set(w, n); }));
+})();
+
+/* Diccionario: alphabetical order worked out again with a simple comparison of the Spanish alphabet */
+(function(){
+  const D = L4.TOPICS.find(t => t.id === "diccionario"); if (!D) return;
+  const AB = "abcdefghijklmnñopqrstuvwxyz";
+  const plain = w => w.toLowerCase().replace(/[áàä]/g, "a").replace(/[éè]/g, "e").replace(/[íï]/g, "i").replace(/[óö]/g, "o").replace(/[úü]/g, "u");
+  const cmp = (a, b) => { a = plain(a); b = plain(b); for (let i = 0; i < Math.min(a.length, b.length); i++){ const d = AB.indexOf(a[i]) - AB.indexOf(b[i]); if (d) return d; } return a.length - b.length; };
+  const al = D.skills.find(s => s.id === "di-alfabeto");
+  al.pool.forEach(addTextAll);
+  for (let lv = 1; lv <= 3; lv++) for (let n = 0; n < 300; n++){
+    const q = al.make(lv), sorted = q.items.slice().sort(cmp);
+    if (sorted.join() !== q.items.join()) fail(`alfabeto L${lv}: ${q.items} should be ${sorted}`);
+    const pos = lv - 1, pre = new Set(q.items.map(w => plain(w).slice(0, pos)));
+    if (pre.size !== 1) fail(`alfabeto L${lv}: ${q.items} don't share the first ${pos} letters`);
+  }
+  const g = D.skills.find(s => s.id === "di-guia");
+  for (let lv = 1; lv <= 3; lv++) for (let n = 0; n < 300; n++){
+    const q = g.make(lv);
+    if (lv === 2) continue;
+    const [a, b, w] = [...q.text.matchAll(/<b>(.*?)<\/b>/g)].map(m => m[1]);
+    const inside = cmp(a, w) < 0 && cmp(w, b) < 0;
+    if ((q.answer === "sí") !== inside) fail(`guía: ${a}–${b}, ${w}: answer ${q.answer}`);
+  }
+  for (const [w, [means, sents]] of Object.entries(D.skills.find(s => s.id === "di-acepcion").entries)){
+    addTextAll(w); means.forEach(addTextAll); sents.forEach(([s2, k]) => { addTextAll(s2); if (!(k >= 1 && k <= means.length)) fail(`acepción ${w}: ${k}`); });
+  }
 })();
 
 for (const T of L4.TOPICS){

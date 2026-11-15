@@ -15,7 +15,7 @@ It's built like the maths app (`~/math`, [jmg2014.github.io/math](https://jmg201
 | 🧩 Gramática | `gramatica/` | ✅ Built: 12 skills |
 | 🔤 Vocabulario | `vocabulario/` | ✅ Built: 8 skills |
 | ❓ Oraciones y puntuación | `oraciones/` | ✅ Built: 6 skills |
-| 📖 Diccionario | `diccionario/` | Coming soon |
+| 📖 Diccionario | `diccionario/` | ✅ Built: 4 skills |
 | 👓 Lectura | `lectura/` | Coming soon |
 | 🎭 Literatura y lenguas | `literatura/` | Coming soon |
 
