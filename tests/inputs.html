@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Inputs demo · Lengua 4.º</title>
+<link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+<section id="menu" class="screen active">
+  <h1>Demo of every way to answer</h1>
+  <p class="muted">For trying the inputs on the tablet, and for screenshots. Not part of the app.</p>
+  <div class="btnrow" style="justify-content:flex-start" id="list"></div>
+</section>
+<script>try { localStorage.removeItem("lengua4-v1"); } catch(e){}</script>
+<script src="../shared/progress.js"></script>
+<script src="../shared/engine.js"></script>
+<script>
+/* ?i=text shows one input; &do=right|near|wrong also answers it, to show the feedback */
+const DEMO = {
+  choice:{ input:"choice", picture:"🐄", text:"¿Cuál está bien escrita?", choices:["vaca", "baca"], answer:"vaca",
+           explain:"<b>vaca</b> (el animal) se escribe con v. <b>baca</b> es la parte de arriba del coche." },
+  gap:   { input:"gap", picture:"🐴", text:"¿Con b o con v?", gap:"ca_allo", choices:["b", "v"], answer:"b",
+           explain:"<b>caballo</b> se escribe con b." },
+  text:  { input:"text", picture:"🌳", text:"Escribe el nombre:", answer:"árbol",
+           explain:"Se escribe <b>árbol</b>, con tilde en la a." },
+  text2: { input:"text", text:"Escribe la pregunta: <i>qué hora es</i>", answer:"¿Qué hora es?", keys:["¿", "?", "¡", "!"], caseSensitive:true,
+           explain:"En español la pregunta se abre con <b>¿</b> y se cierra con <b>?</b>" },
+  words: { input:"words", text:"Toca los <b>sustantivos</b>:", words:["La", "niña", "lleva", "una", "mochila", "roja", "."], answer:[1, 4],
+           explain:"Los sustantivos son <b>niña</b> y <b>mochila</b>: nombran personas, animales o cosas." },
+  order: { input:"order", text:"Ordena las palabras para formar una oración:", items:["Mi", "abuela", "hace", "pasteles", "riquísimos"],
+           explain:"<b>Mi abuela hace pasteles riquísimos.</b>" },
+  order2:{ input:"order", picture:"🦋", text:"Ordena las sílabas:", items:["ma", "ri", "po", "sa"], joiner:"",
+           explain:"<b>mariposa</b>: ma-ri-po-sa." }
+};
+const p = new URLSearchParams(location.search), which = p.get("i");
+document.getElementById("list").innerHTML = Object.keys(DEMO).map(k => `<a class="btn" href="?i=${k}">${k}</a>`).join("");
+L4.onQuit = () => { location.search = ""; };
+function answer(kind){
+  const q = DEMO[which], press = k => document.querySelector(`#kbd [data-k="${k}"]`).dispatchEvent(new PointerEvent("pointerdown", { bubbles:true }));
+  const click = s => document.querySelector(s).click();
+  if (q.input === "choice" || q.input === "gap") click(`#choices [data-c="${q.choices.indexOf(q.answer) ^ (kind === "right" ? 0 : 1)}"]`);
+  if (which === "text" && kind === "armed"){ for (const c of "arb") press(c); press("acute"); return; }
+  if (which === "text"){ if (kind === "right") press("acute"); for (const c of kind === "wrong" ? "arvol" : "arbol") press(c); press("ok"); }
+  if (which === "text2"){ press("¿"); press("shift"); for (const c of "que hora es") press(c === " " ? "space" : c); if (kind !== "wrong") press("?"); press("ok"); }
+  if (q.input === "words"){ (kind === "right" ? [1, 4] : [1, 5]).forEach(i => click(`[data-w="${i}"]`)); click("[data-check]"); }
+  if (q.input === "order"){
+    const seq = kind === "right" ? q.items : [q.items[1], q.items[0], ...q.items.slice(2)];
+    for (const it of seq) [...document.querySelectorAll("#board .pool button")].find(b => b.textContent === it).click();
+    if (p.get("do") !== "half") click("[data-check]");
+  }
+}
+if (which && DEMO[which]){
+  L4.startSession({ title:"Demo · " + which, questions:[DEMO[which]], waitOnWrong:true, okDelay:600000, badDelay:600000, onFinish(){ location.search = ""; } });
+  if (p.get("do")) setTimeout(() => answer(p.get("do")), 50);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "Lengua 4.º",
+  "short_name": "Lengua 4.º",
+  "description": "Practica la Lengua Castellana de 4.º de Primaria: ortografía, tildes, gramática, vocabulario y más",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff6f1",
+  "theme_color": "#c8402a",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

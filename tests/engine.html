@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Engine tests</title>
+<link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+<pre id="out"></pre>
+<script>try { localStorage.removeItem("lengua4-v1"); } catch(e){}</script>
+<script src="../shared/progress.js"></script>
+<script src="../shared/engine.js"></script>
+<script src="../shared/words.js"></script>
+<script>
+/* Automated checks for the answer inputs: each one plays a question by simulating taps and key presses.
+   Run with tests/check.py (headless Chrome), or open this page in a browser. */
+const out = [];
+(async function(){
+"use strict";
+const $ = s => document.querySelector(s);
+let fails = 0;
+function ok(cond, name){ out.push((cond ? "PASS " : "FAIL ") + name); if (!cond) fails++; }
+const tick = ms => new Promise(r => setTimeout(r, ms));
+const press = k => { const b = document.querySelector(`#kbd [data-k="${k}"]`); if (!b) throw new Error("no key " + k); b.dispatchEvent(new PointerEvent("pointerdown", { bubbles:true })); };
+const typeWord = w => { for (const ch of w) press(ch === " " ? "space" : ch); };
+const keydown = key => document.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles:true }));
+/* play one question; act() answers it; resolves with what onAnswer saw, and the feedback shown after it */
+function play(q, act, extra){
+  return new Promise(async resolve => {
+    let seen = null;
+    L4.startSession(Object.assign({ title:"test", questions:[q], okDelay:1, badDelay:1,
+      onAnswer:(qq, ok, ms, given, result) => {
+        seen = { ok, given, result };
+        setTimeout(() => Object.assign(seen, { fb:$("#feedback").className, fbText:$("#feedback").textContent, ans:$("#answer").className }), 0);
+      },
+      onFinish:res => setTimeout(() => resolve(Object.assign(seen || {}, { res })), 0) }, extra || {}));
+    await tick(5);
+    act();
+    setTimeout(() => resolve(Object.assign(seen || {}, { timeout:true })), 3000);
+  });
+}
+
+/* ---- compareText ---- */
+ok(L4.compareText("árbol", "árbol") === "ok", "compare: same word");
+ok(L4.compareText("  Árbol ", "árbol") === "ok", "compare: capitals and spaces don't count");
+ok(L4.compareText("arbol", "árbol") === "accent", "compare: missing accent → accent");
+ok(L4.compareText("árból", "árbol") === "accent", "compare: extra accent → accent");
+ok(L4.compareText("arvol", "árbol") === "wrong", "compare: wrong letter → wrong");
+ok(L4.compareText("pinguino", "pingüino") === "wrong", "compare: ü is a letter, not an accent");
+ok(L4.compareText("nino", "niño") === "wrong", "compare: ñ is a letter, not an accent");
+ok(L4.compareText("madrid", "Madrid", true) === "wrong", "compare: caseSensitive");
+ok(L4.compareText("Madrid", "Madrid", true) === "ok", "compare: caseSensitive right");
+ok(L4.compareText("la  casa", "la casa") === "ok", "compare: double space");
+ok(L4.compareText("e", ["y", "e"]) === "ok", "compare: list of answers");
+
+/* ---- text input ---- */
+let r = await play({ input:"text", text:"Escribe", answer:"árbol" }, () => { press("acute"); typeWord("arbol"); press("ok"); });
+ok(r.result === "ok" && r.given === "árbol", "text: ´ + a makes á, árbol right");
+ok(r.ans.includes("right"), "text: answer box turns green");
+
+r = await play({ input:"text", text:"Escribe", answer:"árbol" }, () => { typeWord("arbol"); press("ok"); });
+ok(r.result === "accent" && r.ok === true, "text: missing accent counts as right (soft) with result accent");
+ok(r.fb.includes("near") && r.fbText.includes("árbol") && r.fbText.includes("tilde"), "text: 'Casi' note names the right word");
+ok(r.res.length === 1 && r.res[0].result === "accent", "text: result stored");
+
+r = await play({ input:"text", text:"Escribe", answer:"árbol" }, async () => {
+  typeWord("arbol"); press("ok");
+  await tick(30);                                  // the same word comes back: answer it again
+  press("acute"); typeWord("arbol"); press("ok");
+}, { requeue:true, maxQ:5 });
+ok(r.res && r.res.length === 2 && r.res[1].q.retry && r.res[1].result === "ok", "text: an accent slip comes back later (requeue)");
+
+r = await play({ input:"text", text:"Escribe", answer:"árbol", strictAccent:true }, () => { typeWord("arbol"); press("ok"); });
+ok(r.result === "wrong" && r.fbText.includes("tilde"), "text: strictAccent → wrong, and says only the accent is wrong");
+
+r = await play({ input:"text", text:"Escribe", answer:"Madrid", caseSensitive:true }, () => { typeWord("madrid"); press("ok"); });
+ok(r.result === "wrong", "text: caseSensitive, no capital → wrong");
+r = await play({ input:"text", text:"Escribe", answer:"Madrid", caseSensitive:true }, () => { press("shift"); typeWord("madrid"); press("ok"); });
+ok(r.result === "ok" && r.given === "Madrid", "text: ⇧ makes one capital letter only");
+
+r = await play({ input:"text", text:"Escribe", answer:"pingüino" }, () => { typeWord("ping"); press("diaer"); typeWord("uino"); press("ok"); });
+ok(r.result === "ok", "text: ¨ + u makes ü");
+r = await play({ input:"text", text:"Escribe", answer:"niño" }, () => { typeWord("niño"); press("ok"); });
+ok(r.result === "ok", "text: ñ key");
+r = await play({ input:"text", text:"Escribe", answer:"Ábaco", caseSensitive:true }, () => { press("shift"); press("acute"); typeWord("abaco"); press("ok"); });
+ok(r.given === "Ábaco" && r.result === "ok", "text: ⇧ + ´ + a makes Á");
+r = await play({ input:"text", text:"Escribe", answer:"pan" }, () => { press("acute"); typeWord("pan"); press("ok"); });
+ok(r.given === "pan", "text: ´ before a consonant is dropped");
+r = await play({ input:"text", text:"Escribe", answer:"pan" }, () => { press("acute"); press("del"); typeWord("pan"); press("ok"); });
+ok(r.given === "pan", "text: ⌫ cancels a pending ´");
+r = await play({ input:"text", text:"Escribe", answer:"la casa" }, () => { press("space"); typeWord("la"); press("space"); press("space"); typeWord("casa"); press("ok"); });
+ok(r.given === "la casa" && r.result === "ok", "text: no leading or double spaces");
+r = await play({ input:"text", text:"Escribe", answer:"gato" }, () => { typeWord("gatox"); press("del"); press("ok"); });
+ok(r.given === "gato", "text: ⌫ deletes a letter");
+
+let fired = false;
+r = await play({ input:"text", text:"Escribe", answer:"sol" }, () => { press("ok"); fired = !!document.querySelector("#feedback").textContent; typeWord("sol"); press("ok"); });
+ok(!fired && r.result === "ok", "text: Comprobar with nothing typed does nothing");
+
+r = await play({ input:"text", text:"Escribe", answer:"árbol" }, () => { for (const k of ["á","r","b","o","l"]) keydown(k); keydown("Enter"); });
+ok(r.result === "ok", "text: a real keyboard types á directly, Enter checks");
+r = await play({ input:"text", text:"Escribe", answer:"¿Qué?", keys:["¿","?"], caseSensitive:true },
+  () => { press("¿"); press("shift"); typeWord("qu"); press("acute"); typeWord("e"); press("?"); press("ok"); });
+ok(r.result === "ok", "text: extra keys (¿ ?) for one question");
+ok(document.querySelectorAll("#kxtra button").length === 2, "text: extra keys shown");
+r = await play({ input:"text", text:"Escribe", answer:"abc", maxLen:3 }, () => { typeWord("abcd"); press("ok"); });
+ok(r.given === "abc", "text: maxLen stops typing");
+
+/* ---- choice and gap ---- */
+r = await play({ input:"choice", text:"¿Cuál?", choices:["vaca", "baca"], answer:"vaca" }, () => document.querySelector('#choices [data-c="0"]').click());
+ok(r.result === "ok", "choice: right button");
+r = await play({ input:"choice", text:"¿Cuál?", choices:["vaca", "baca"], answer:"vaca" }, () => document.querySelector('#choices [data-c="1"]').click());
+ok(r.result === "wrong" && document.querySelector('#choices [data-c="0"]').classList.contains("right") && document.querySelector('#choices [data-c="1"]').classList.contains("wrongpick"),
+   "choice: wrong pick red, right one green");
+r = await play({ input:"gap", text:"¿b o v?", gap:"ca_allo", choices:["b", "v"], answer:"b" }, () => document.querySelector('#choices [data-c="1"]').click());
+ok(r.result === "wrong" && $("#answer .slot").classList.contains("wrongpick") && $("#answer .fix").textContent.includes("caballo"), "gap: wrong letter red, right word shown");
+ok(r.res[0].givenText === "cavallo", "gap: given text is the word as the child wrote it");
+r = await play({ input:"gap", text:"¿ll o y?", gap:"_uvia", choices:["ll", "y"], answer:"ll" }, () => document.querySelector('#choices [data-c="0"]').click());
+ok(r.result === "ok" && $("#answer").textContent.startsWith("lluvia"), "gap: two-letter fill");
+r = await play({ input:"gap", text:"¿b o v?", gap:"ca_allo", choices:["b", "v"], answer:"b" }, () => keydown("1"));
+ok(r.result === "ok", "gap: number keys pick a choice");
+
+/* ---- words ---- */
+const W = ["El", "perro", "come", "pienso", "."];
+r = await play({ input:"words", text:"Toca los sustantivos", words:W, answer:[1, 3] }, () => {
+  document.querySelector('[data-w="1"]').click(); document.querySelector('[data-w="3"]').click(); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok", "words: pick the right two");
+ok(!document.querySelector('[data-w="4"]') && document.querySelector(".mark"), "words: punctuation isn't tappable");
+r = await play({ input:"words", text:"Toca los sustantivos", words:W, answer:[1, 3] }, () => {
+  document.querySelector('[data-w="1"]').click(); document.querySelector('[data-w="2"]').click(); document.querySelector("[data-check]").click(); });
+ok(r.result === "wrong" && document.querySelector('[data-w="3"]').classList.contains("missed") && document.querySelector('[data-w="2"]').classList.contains("wrongpick"),
+   "words: missed word dashed, wrong pick red");
+r = await play({ input:"words", text:"Toca los sustantivos", words:W, answer:[1, 3] }, () => {
+  const b = document.querySelector('[data-w="2"]'); b.click(); b.click();
+  document.querySelector('[data-w="1"]').click(); document.querySelector('[data-w="3"]').click(); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok", "words: tapping again un-picks a word");
+r = await play({ input:"words", text:"Toca el verbo", words:W, answer:[2], one:true }, () => document.querySelector('[data-w="2"]').click());
+ok(r.result === "ok" && !document.querySelector("[data-check]"), "words: one:true answers on the first tap");
+let early = true;
+r = await play({ input:"words", text:"Toca", words:W, answer:[1] }, () => {
+  document.querySelector("[data-check]").click(); early = !document.querySelector("#feedback").textContent;
+  document.querySelector('[data-w="1"]').click(); document.querySelector("[data-check]").click(); });
+ok(early && r.result === "ok", "words: Comprobar with nothing picked does nothing");
+
+/* ---- order ---- */
+function tapInOrder(items){
+  for (const it of items){
+    const b = [...document.querySelectorAll("#board .pool button")].find(x => x.textContent === it);
+    b.click();
+  }
+}
+r = await play({ input:"order", text:"Ordena", items:["El", "sol", "brilla"] }, () => { tapInOrder(["El", "sol", "brilla"]); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok", "order: right order");
+r = await play({ input:"order", text:"Ordena", items:["El", "sol", "brilla"] }, () => { tapInOrder(["sol", "El", "brilla"]); document.querySelector("[data-check]").click(); });
+ok(r.result === "wrong" && document.querySelector("#board .built").classList.contains("wrong"), "order: wrong order");
+r = await play({ input:"order", text:"Ordena", items:["El", "sol", "brilla"] }, () => {
+  tapInOrder(["sol"]); document.querySelector('#board [data-b="0"]').click();       // take it back out
+  tapInOrder(["El", "sol", "brilla"]); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok", "order: tapping a placed card sends it back");
+r = await play({ input:"order", text:"Sílabas", items:["ca", "sa"], joiner:"" }, () => { tapInOrder(["ca", "sa"]); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok" && r.res[0].givenText === "casa", "order: joiner '' joins syllables");
+r = await play({ input:"order", text:"Letras", items:["a", "n", "a"], joiner:"" }, () => { tapInOrder(["a", "n", "a"]); document.querySelector("[data-check]").click(); });
+ok(r.result === "ok", "order: repeated cards work");
+r = await play({ input:"order", text:"Ordena", items:["uno", "dos"] }, () => { tapInOrder(["uno"]); });
+ok(!document.querySelector("[data-check]"), "order: Comprobar only shows when every card is placed");
+L4.stopSession();
+let sameAsAnswer = 0;
+for (let i = 0; i < 200; i++){
+  L4.startSession({ title:"t", questions:[{ input:"order", text:"x", items:["a", "b", "c"] }], onFinish(){} });
+  if ([...document.querySelectorAll("#board .pool button")].map(b => b.textContent).join("") === "abc") sameAsAnswer++;
+}
+L4.stopSession();
+ok(sameAsAnswer === 0, "order: cards never start in the right order (200 tries)");
+
+/* ---- wrong answer waits for Siguiente ---- */
+let finished = false;
+L4.startSession({ title:"t", questions:[{ input:"choice", text:"?", choices:["a", "b"], answer:"a" }], waitOnWrong:true, onFinish(){ finished = true; } });
+await tick(5);
+document.querySelector('#choices [data-c="1"]').click();
+await tick(50);
+ok(!finished && document.querySelector("#contBtn"), "waitOnWrong: shows Siguiente and waits");
+document.querySelector("#contBtn").click();
+await tick(20);
+ok(finished, "waitOnWrong: Siguiente moves on");
+
+/* ---- accents become strict once the accent skill is mastered ---- */
+L4.prog.skill(L4.prog.ACCENT_SKILL).star = true; L4.prog.save();
+r = await play({ input:"text", text:"Escribe", answer:"árbol" }, () => { typeWord("arbol"); press("ok"); });
+ok(r.result === "wrong", "accents: strict after the Tildes skill is mastered");
+L4.prog.resetAll();
+ok(!L4.prog.accentsStrict(), "accents: soft again after reset");
+
+/* ---- results screen ---- */
+L4.showResults({ title:"T", score:"1 / 2", msg:"m", missed:[{ q:{ input:"gap", gap:"ca_allo", answer:"b", text:"x" }, givenText:"cavallo" }], buttons:[["Inicio", () => {}, "primary"]] });
+ok($("#resList").textContent.includes("caballo") && $("#resList").textContent.includes("tu respuesta: cavallo"), "results: shows the right word and the child's answer");
+
+/* ---- progress: record, backup, restore ---- */
+const P = L4.prog;
+P.record("x-test", true, 1000); P.record("x-test", false, 1000);
+const s = P.peek("x-test");
+ok(s.seen === 2 && s.correct === 1 && s.last === 0, "progress: record");
+const bk = JSON.parse(JSON.stringify(P.backup()));
+P.resetAll();
+ok(!P.peek("x-test"), "progress: reset");
+P.restore(bk);
+ok(P.peek("x-test") && P.peek("x-test").seen === 2, "progress: restore from backup");
+let threw = false; try { P.restore({ app:"year4-maths", year4:{} }); } catch(e){ threw = true; }
+ok(threw, "progress: a maths backup is refused");
+ok(localStorage.getItem("y4-v1") === null && localStorage.getItem("lengua4-v1") !== null, "progress: saved under lengua4-v1, never the maths key");
+let msg = null; for (let i = 0; i < 4; i++) msg = P.mixProgress("x-mix", 1, true, "Prueba");
+ok(P.peek("x-mix").level === 2 && /nivel 2/.test(msg), "progress: 4 right in a row in the mix unlocks level 2");
+P.resetAll();
+
+/* ---- word bank ---- */
+const all = L4.WORDS.all();
+ok(all.length > 100 && all.every(w => typeof w === "string" && w.length > 1), "words: bank loads (" + all.length + " words)");
+ok(L4.WORDS.nouns.every(n => n.g === "m" || n.g === "f"), "words: every noun has a gender");
+
+out.push(`\nWORDS ${JSON.stringify(all)}`);
+out.push(`DONE ${out.filter(l => l.startsWith("PASS")).length} passed, ${fails} failed`);
+document.getElementById("out").textContent = out.join("\n");
+document.title = fails ? "FAIL" : "OK";
+})().catch(e => { document.getElementById("out").textContent = out.join("\n") + "\nCRASH " + e.stack; });
+</script>
+</body>
+</html>

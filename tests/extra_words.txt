@@ -1,0 +1,2 @@
+# Words that are correct Spanish but missing from both dictionaries on this computer.
+# Check each one in the RAE dictionary (https://dle.rae.es) before adding it. One word per line.

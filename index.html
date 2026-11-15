@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#c8402a">
+<title>Lengua 4.º</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="shared/style.css">
+<style>
+/* main page only */
+.daily{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--accent);color:var(--accent-ink);
+  border-radius:22px;padding:20px 22px;margin:16px 0 6px;box-shadow:0 5px 0 var(--accent-dark)}
+.daily h2{margin:0 0 4px;font-size:1.45rem}
+.daily p{margin:0;opacity:.95}
+.daily .btn{background:#fff;color:var(--accent-dark);border:none;font-size:1.25rem;padding:14px 26px}
+.daily .btn:disabled{opacity:.6;cursor:default}
+.mode .letter{display:inline-block;font-weight:900;color:var(--accent);font-size:2.2rem;line-height:1.1}
+</style>
+</head>
+<body>
+<section id="hub" class="screen active">
+  <div class="top">
+    <h1>📚 Lengua 4.º</h1>
+    <button id="soundBtn" class="ghost" aria-label="Sonido sí o no">🔊</button>
+  </div>
+
+  <div class="daily" id="daily"></div>
+
+  <div id="topics" class="modes"></div>
+
+  <div class="panel">
+    <h2>💾 Copia de seguridad</h2>
+    <p class="muted">El progreso se guarda solo en este dispositivo. Guarda una copia para no perderlo, o para pasarlo a otro dispositivo.</p>
+    <div class="btnrow" style="justify-content:flex-start;margin-top:10px">
+      <button id="backupBtn" class="btn primary">⬇️ Guardar copia</button>
+      <button id="restoreBtn" class="btn">⬆️ Recuperar copia</button>
+      <input id="restoreFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p id="backupMsg" class="muted" style="min-height:1.2em"></p>
+  </div>
+  <button id="resetBtn" class="link">Borrar TODO el progreso</button>
+</section>
+
+<script src="shared/progress.js"></script>
+<script src="shared/engine.js"></script>
+<script src="shared/words.js"></script>
+<!-- every topic's skills.js goes here as it is built: for progress, the curriculum map and the daily mix -->
+<script>
+(function(){
+"use strict";
+const { $, prog:P, shuffle } = L4;
+
+/* The topics, in the order of the roadmap. built:false shows "Próximamente". */
+const TOPICS = [
+  { id:"ortografia",  emoji:"✏️", name:"Ortografía",            path:"ortografia/",  desc:"b/v, g/j, ll/y, r/rr, h, c/qu/z, mayúsculas, español e inglés, dictado" },
+  { id:"tildes",      emoji:'<span class="letter">Á</span>', name:"Tildes",               path:"tildes/",      desc:"Sílabas, sílaba tónica, agudas, llanas y esdrújulas, diptongos e hiatos" },
+  { id:"gramatica",   emoji:"🧩", name:"Gramática",             path:"gramatica/",   desc:"Sujeto y predicado, sustantivos, determinantes, adjetivos, verbos…" },
+  { id:"vocabulario", emoji:"🔤", name:"Vocabulario",           path:"vocabulario/", desc:"Sinónimos, antónimos, prefijos, sufijos, familias, frases hechas" },
+  { id:"oraciones",   emoji:"❓", name:"Oraciones y puntuación", path:"oraciones/",   desc:"¿? ¡!, punto, coma, dos puntos, ordenar oraciones" },
+  { id:"diccionario", emoji:"📖", name:"Diccionario",           path:"diccionario/", desc:"Orden alfabético, palabras guía, buscar el significado" },
+  { id:"lectura",     emoji:"👓", name:"Lectura",               path:"lectura/",     desc:"Comprensión de textos cortos, partes de un cuento, tipos de texto" },
+  { id:"literatura",  emoji:"🎭", name:"Literatura y lenguas",  path:"literatura/",  desc:"Narrativa, poesía y teatro, rima, autores, lenguas de España" }
+];
+const built = t => L4.TOPICS.some(x => x.id === t.id);
+const allSkills = () => L4.TOPICS.flatMap(T => T.skills.map(s => ({ s, T })));
+
+/* ---------- topic tiles ---------- */
+function renderTopics(){
+  $("#topics").innerHTML = TOPICS.map(t => {
+    if (!built(t)) return `<div class="mode soon" aria-disabled="true"><span class="emoji">${t.emoji}</span><b>${t.name}</b><small>${t.desc}</small><small><b style="font-size:1rem">🚧 Próximamente</b></small></div>`;
+    const topic = L4.TOPICS.find(x => x.id === t.id);
+    return `<a class="mode" href="${t.path}"><span class="emoji">${t.emoji}</span><b>${t.name}</b><small>${t.desc}</small><small><b style="font-size:1rem;color:var(--ink)">⭐ ${P.topicStars(topic)} de ${topic.skills.length}</b></small></a>`;
+  }).join("");
+}
+
+/* ---------- the daily mix ---------- */
+function status(id){ const r = P.peek(id); return !r || !r.seen ? (r && r.star ? "mastered" : "new") : r.star ? "mastered" : "learning"; }
+function renderDaily(){
+  if (!allSkills().length){
+    $("#daily").innerHTML = `<div><h2>🌞 Mezcla del día</h2><p>Estará lista en cuanto haya temas para practicar.</p></div><button class="btn" disabled>Empezar ▶</button>`;
+    return;
+  }
+  const d = P.daily, done = d.last === P.today(), yesterday = P.dayKey(new Date(Date.now() - 864e5));
+  const streak = done || d.last === yesterday ? d.streak : 0;
+  const line = done ? `✓ ¡Hecha hoy! 🔥 ${streak} ${streak === 1 ? "día" : "días"} seguidos. ¿Otra?`
+             : streak ? `¡Sigue con tu racha de 🔥 ${streak} ${streak === 1 ? "día" : "días"}!`
+             : "12 preguntas de todos los temas, elegidas para ayudarte más.";
+  $("#daily").innerHTML = `<div><h2>🌞 Mezcla del día</h2><p>${line}</p></div><button class="btn" id="mixBtn">${done ? "Otra vez" : "Empezar"} ▶</button>`;
+  $("#mixBtn").onclick = startMix;
+}
+function buildMix(){
+  const pool = allSkills().map(({ s, T }) => {
+    const r = P.peek(s.id), st = status(s.id);
+    if (st === "new") return { s, T, w:1, lv:1, isNew:true };
+    if (st === "mastered"){                            // review it if it hasn't been practised for a week
+      const days = r && r.lastDate ? (Date.now() - new Date(r.lastDate)) / 864e5 : 99;
+      return { s, T, w:days >= 7 ? 3 : .5, lv:3 };
+    }
+    return { s, T, w:r.last === 0 ? 6 : 4, lv:r.level };   // still learning: most of the mix
+  });
+  const qs = [], per = {}, keys = new Set();
+  let news = 0, guard = 0;
+  while (qs.length < 12 && guard++ < 800){
+    // at most 2 questions per skill and 2 new skills, unless there aren't enough skills to fill the mix
+    const strict = guard < 300;
+    const [p] = L4.weightedPick(pool, pool.map(x => x.w), 1);
+    if ((per[p.s.id] || 0) >= (strict ? 2 : 4) || (strict && p.isNew && !per[p.s.id] && news >= 2)) continue;
+    let q; try { q = p.s.make(p.lv); } catch(e){ continue; }
+    const k = q.key || q.text + "|" + (q.gap || "");
+    if (keys.has(k)) continue;
+    keys.add(k);
+    if (p.isNew && !per[p.s.id]) news++;
+    per[p.s.id] = (per[p.s.id] || 0) + 1;
+    qs.push(Object.assign(q, { _skill:p.s.id, _lv:p.lv, _name:p.s.name, tag:`${p.T.emoji} ${p.s.name}` }));
+  }
+  return shuffle(qs);
+}
+L4._buildMix = buildMix;                               // for testing
+let unlocked = [];                                     // levels and stars won during this mix
+function startMix(){
+  unlocked = [];
+  L4.startSession({ title:"🌞 Mezcla del día", questions:buildMix(), requeue:true, maxQ:16, waitOnWrong:true,
+    onAnswer:(q, ok, ms) => {
+      P.record(q._skill, ok, ms);
+      if (!q.retry){ const m = P.mixProgress(q._skill, q._lv, ok, q._name); if (m) unlocked.push(m); }   // retries don't count
+    },
+    onFinish:finishMix });
+}
+function finishMix(res){
+  const first = res.filter(r => !r.q.retry), score = first.filter(r => r.ok).length;
+  const fresh = P.dailyDone(), d = P.daily;
+  const msg = (fresh ? `🔥 ¡${d.streak} ${d.streak === 1 ? "día" : "días"} seguidos! ` : "") +
+    (score === first.length ? "¡Todas bien! ¡Genial!" : score >= first.length * .75 ? "¡Muy buen trabajo!" : "Buena práctica. Las difíciles volverán mañana.");
+  L4.showResults({ title:fresh ? "¡Mezcla del día hecha! 🌞" : "¡Mezcla hecha! 🌞", score:`${score} / ${first.length}`, msg:unlocked.length ? `${msg} ${unlocked.join(" · ")}` : msg,
+    missed:res.filter(r => !r.ok), buttons:[["Otra mezcla", startMix, ""], ["Inicio", goHome, "primary"]], celebrate:fresh || unlocked.length > 0 });
+}
+function goHome(){ L4.stopSession(); renderAll(); L4.show("hub"); }
+L4.onQuit = goHome;
+
+function renderAll(){
+  renderDaily(); renderTopics();
+  $("#soundBtn").textContent = P.sound ? "🔊" : "🔇";
+}
+
+$("#soundBtn").addEventListener("click", () => { P.sound = !P.sound; renderAll(); });
+$("#resetBtn").addEventListener("click", () => {
+  if (confirm("¿Borrar TODO el progreso de todos los temas (estrellas, niveles, racha)? No se puede deshacer.")){ P.resetAll(); location.reload(); }
+});
+
+/* ---------- backup & restore ---------- */
+function backupMsg(t){ $("#backupMsg").textContent = t; }
+$("#backupBtn").addEventListener("click", () => {
+  try {
+    const stamp = P.today(), name = `lengua4-copia-${stamp}.json`;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(P.backup(), null, 1)], { type:"application/json" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    backupMsg(`✓ Guardado "${name}" (mira en Descargas).`);
+  } catch(e){ backupMsg("No se ha podido guardar la copia en este dispositivo."); }
+});
+$("#restoreBtn").addEventListener("click", () => $("#restoreFile").click());
+$("#restoreFile").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  let obj;
+  try { obj = JSON.parse(await f.text()); } catch(err){ backupMsg("Ese archivo no es una copia de Lengua 4.º."); return; }
+  const when = obj && obj.savedAt ? new Date(obj.savedAt).toLocaleString("es-ES") : "una fecha desconocida";
+  if (!confirm(`¿Cambiar el progreso de este dispositivo por la copia del ${when}?`)) return;
+  try { P.restore(obj); renderAll(); backupMsg("✓ Progreso recuperado."); }
+  catch(err){ backupMsg("Ese archivo no es una copia de Lengua 4.º."); }
+});
+
+L4.registerOffline("sw.js");
+renderAll();
+})();
+</script>
+</body>
+</html>
