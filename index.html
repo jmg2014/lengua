@@ -20,6 +20,41 @@
 .daily .btn{background:#fff;color:var(--accent-dark);border:none;font-size:1.25rem;padding:14px 26px}
 .daily .btn:disabled{opacity:.6;cursor:default}
 .mode .letter{display:inline-block;font-weight:900;color:var(--accent);font-size:2.2rem;line-height:1.1}
+.cmap-sec{margin-top:14px}
+.cmap-sec h3{margin:0 0 6px;font-size:1rem}
+.cline{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:10px;color:var(--ink);text-decoration:none;line-height:1.35}
+a.cline:hover{background:var(--key)}
+.cline .st{flex:0 0 9.6em;white-space:nowrap;text-align:center;font-size:.8rem;font-weight:800;border-radius:999px;padding:2px 8px;margin-top:1px}
+.st.new{background:var(--grey);color:var(--muted)}
+.st.learning{background:#fbe1a0;color:#6a4a00}
+.st.mastered{background:#a6e5c1;color:#0d5a33}
+.st.class{background:transparent;color:var(--muted);border:2px dashed var(--line)}
+.cline.class{color:var(--muted)}
+.summary-row{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 2px}
+.summary-row .st{font-size:.95rem;font-weight:800;border-radius:999px;padding:4px 12px}
+details.panel > summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.panel > summary::-webkit-details-marker{display:none}
+details.panel > summary h2{margin:0}
+details.panel > summary::after{content:"▾";font-size:1.4rem;color:var(--muted)}
+details[open].panel > summary::after{content:"▴"}
+.wk{position:relative;max-width:560px}
+.wk svg{width:100%;height:auto;display:block}
+.wk-bar{fill:var(--accent)}
+.wk-hit{fill:transparent;cursor:pointer}
+.wk-hit:hover + .wk-bar,.wk-hit.on + .wk-bar{fill:var(--accent-dark)}
+.wk-tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:10px;padding:6px 10px;font-size:.9rem;white-space:nowrap;transform:translate(-50%,-110%);display:none}
+.ch-grid{stroke:var(--line);stroke-width:1.5}
+.ch-axis{stroke:var(--ink)}
+.ch-num{fill:var(--muted);font-weight:700}
+.weak{display:grid;gap:8px}
+.weak a{display:flex;justify-content:space-between;gap:10px;background:var(--key);border-radius:12px;padding:10px 12px;color:var(--ink);text-decoration:none}
+.weak small{color:var(--muted)}
+.dtable{border-collapse:separate;border-spacing:0;margin:8px 0;background:var(--card);border:2px solid var(--line);border-radius:14px;overflow:hidden;font-size:.95rem}
+.dtable th,.dtable td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:center}
+.dtable tr:last-child td{border-bottom:none}
+.dtable th{background:var(--key)}
+.facts{display:grid;gap:6px;margin-top:10px}
+.facts div{background:var(--key);border-radius:12px;padding:8px 12px}
 </style>
 </head>
 <body>
@@ -32,6 +67,18 @@
   <div class="daily" id="daily"></div>
 
   <div id="topics" class="modes"></div>
+
+  <details class="panel" id="mapPanel">
+    <summary><div><h2>🗺️ Mapa del currículo</h2><div id="mapSummary" class="summary-row"></div></div></summary>
+    <p class="muted">Todo lo que se aprende en 4.º de Primaria (Comunidad de Madrid), más lo que añade el libro de 4.º. Toca una línea para practicarla.
+      Las marcadas «en clase» no se pueden practicar en una app: hablar, leer libros enteros, investigar…</p>
+    <div id="cmap"></div>
+  </details>
+
+  <details class="panel" id="parents">
+    <summary><h2>👪 Zona de mayores</h2></summary>
+    <div id="parentBody"></div>
+  </details>
 
   <div class="panel">
     <h2>💾 Copia de seguridad</h2>
@@ -50,6 +97,7 @@
 <script src="shared/engine.js"></script>
 <script src="shared/words.js"></script>
 <script src="shared/silabas.js"></script>
+<script src="shared/curriculum.js"></script>
 <!-- every topic's skills.js goes here as it is built: for progress, the curriculum map and the daily mix -->
 <script src="ortografia/skills.js"></script>
 <script src="tildes/skills.js"></script>
@@ -151,8 +199,103 @@ function finishMix(res){
 function goHome(){ L4.stopSession(); renderAll(); L4.show("hub"); }
 L4.onQuit = goHome;
 
+/* ---------- curriculum map ---------- */
+const topicOf = id => L4.TOPICS.find(T => T.skills.some(s => s.id === id));
+const pathOf = id => { const T = topicOf(id), t = T && TOPICS.find(x => x.id === T.id); return t ? `${t.path}#${id}` : null; };
+const LABEL = { new:"○ Sin empezar", learning:"◐ Aprendiendo", mastered:"✓ Dominado", class:"En clase" };
+function renderMap(){
+  let html = "", count = { new:0, learning:0, mastered:0, class:0 }, total = 0;
+  for (const sec of L4.CURRICULUM){
+    html += `<div class="cmap-sec"><h3>${sec.title}</h3>`;
+    for (const [text, ids] of sec.lines){
+      const st = L4.lineStatus(ids); count[st]++; if (st !== "class") total++;
+      const href = ids.length ? pathOf(ids[0]) : null;
+      html += href ? `<a class="cline" href="${href}"><span class="st ${st}">${LABEL[st]}</span><span>${text}</span></a>`
+                   : `<div class="cline class"><span class="st class">${LABEL[st]}</span><span>${text}</span></div>`;
+    }
+    html += `</div>`;
+  }
+  $("#cmap").innerHTML = html;
+  $("#mapSummary").innerHTML = `<span class="st mastered">✓ ${count.mastered} de ${total} dominadas</span>
+    <span class="st learning">◐ ${count.learning} aprendiendo</span><span class="st new">○ ${count.new} sin empezar</span>`;
+}
+
+/* ---------- for grown-ups ---------- */
+const mins = ms => Math.round(ms / 60000);
+function mondayOf(key){ const d = new Date(key + "T12:00"); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return P.dayKey(d); }
+function weeks(n){
+  const out = [], start = new Date(mondayOf(P.today()) + "T12:00");
+  for (let i = n - 1; i >= 0; i--){ const d = new Date(start); d.setDate(d.getDate() - 7 * i); out.push({ key:P.dayKey(d), n:0, ok:0, ms:0 }); }
+  for (const [k, v] of Object.entries(P.days)){ const w = out.find(x => x.key === mondayOf(k)); if (w){ w.n += v.n; w.ok += v.ok; w.ms += v.ms; } }
+  return out;
+}
+const shortDate = key => new Date(key + "T12:00").toLocaleDateString("es-ES", { day:"numeric", month:"short" });
+/* answers per week: one series, so no legend; a tooltip on each bar, and a table underneath */
+function weekChart(ws){
+  const W = 560, H = 190, left = 40, top = 14, bottom = 30, pw = (W - left - 8) / ws.length, bw = Math.min(40, pw * .55);
+  const max = Math.max(10, ...ws.map(w => w.n)), mag = Math.pow(10, Math.floor(Math.log10(max))), step = mag * (max / mag > 5 ? 2 : 1);
+  const top2 = Math.ceil(max / step) * step, y = v => top + (H - top - bottom) * (1 - v / top2);
+  let s = "";
+  for (let v = 0; v <= top2; v += step) s += `<line x1="${left}" y1="${y(v)}" x2="${W - 4}" y2="${y(v)}" class="ch-grid"/><text x="${left - 6}" y="${y(v) + 4}" class="ch-num" style="text-anchor:end;font-size:12px">${v}</text>`;
+  ws.forEach((w, i) => {
+    const cx = left + pw * i + pw / 2, x = cx - bw / 2, yy = y(w.n), h = y(0) - yy, r = Math.min(4, h / 2);
+    const tip = `Semana del ${shortDate(w.key)}: ${w.n} respuesta${w.n === 1 ? "" : "s"}${w.n ? `, ${Math.round(w.ok / w.n * 100)}% bien, ${mins(w.ms)} min` : ""}`;
+    s += `<rect x="${cx - pw / 2}" y="${top}" width="${pw}" height="${H - top - bottom}" class="wk-hit" data-tip="${tip}"/>`;
+    s += h > 0 ? `<path d="M${x},${y(0)} V${yy + r} Q${x},${yy} ${x + r},${yy} H${x + bw - r} Q${x + bw},${yy} ${x + bw},${yy + r} V${y(0)} Z" class="wk-bar"/>` : `<g></g>`;
+    s += `<text x="${cx}" y="${H - 10}" class="ch-num" style="text-anchor:middle;font-size:12px">${shortDate(w.key)}</text>`;
+  });
+  s += `<line x1="${left}" y1="${y(0)}" x2="${W - 4}" y2="${y(0)}" class="ch-axis" style="stroke-width:1.5"/>`;
+  return `<div class="wk"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Respuestas cada semana, últimas ${ws.length} semanas">${s}</svg><div class="wk-tip"></div></div>`;
+}
+const table = (head, rows) => `<table class="dtable"><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>`;
+function renderParents(){
+  const days = P.days, keys = Object.keys(days).sort();
+  const last7 = keys.filter(k => (Date.now() - new Date(k + "T12:00")) / 864e5 < 7).map(k => days[k]);
+  const sum = (arr, f) => arr.reduce((a, x) => a + x[f], 0);
+  const n7 = sum(last7, "n"), ok7 = sum(last7, "ok"), ms7 = sum(last7, "ms");
+  const ws = weeks(8);
+  // weakest skills: answered at least 5 times, lowest share right first
+  const weak = allSkills().map(({ s, T }) => ({ s, T, r:P.peek(s.id) })).filter(x => x.r && x.r.seen >= 5 && !x.r.star)
+    .sort((a, b) => a.r.correct / a.r.seen - b.r.correct / b.r.seen).slice(0, 5);
+  const stars = allSkills().filter(({ s }) => { const r = P.peek(s.id); return r && r.star; }).length;
+  $("#parentBody").innerHTML = `
+    <div class="records" style="margin-top:12px">
+      <div class="rec"><small>Últimos 7 días</small><b>${n7}</b> <small>preguntas contestadas</small></div>
+      <div class="rec"><small>Bien a la primera</small><b>${n7 ? Math.round(ok7 / n7 * 100) + "%" : "–"}</b><small>últimos 7 días</small></div>
+      <div class="rec"><small>Tiempo contestando</small><b>${mins(ms7)}</b> <small>minutos, últimos 7 días</small></div>
+      <div class="rec"><small>Racha de la mezcla del día</small><b>${P.daily.streak || 0}</b> <small>mejor: ${P.daily.best || 0} días</small></div>
+      <div class="rec"><small>Habilidades dominadas</small><b>${stars}</b> <small>de ${allSkills().length} ⭐</small></div>
+    </div>
+    <h3>Preguntas contestadas cada semana</h3>
+    ${weekChart(ws)}
+    <details style="margin-top:6px"><summary class="muted" style="cursor:pointer">Ver como tabla</summary>
+      ${table(["Semana del", "Respuestas", "Bien", "Minutos"], ws.slice().reverse().map(w => [shortDate(w.key), w.n, w.n ? Math.round(w.ok / w.n * 100) + "%" : "–", mins(w.ms)]))}
+    </details>
+    <h3>Lo que más le cuesta</h3>
+    ${weak.length ? `<div class="weak">${weak.map(({ s, T, r }) => `<a href="${pathOf(s.id)}"><span>${s.emoji} ${s.name}<br><small>${T.title} · nivel ${r.level} de 3</small></span>
+      <span style="text-align:right"><b>${Math.round(r.correct / r.seen * 100)}%</b><br><small>de ${r.seen} bien</small></span></a>`).join("")}</div>`
+      : `<p class="muted">Aún no hay suficientes respuestas. Se rellena después de unas cuantas sesiones.</p>`}
+    <div class="facts">
+      <div>✍️ <b>Tildes:</b> ${P.accentsStrict() ? "ya cuentan como error en toda la app (habilidad «¿Lleva tilde?» dominada)." : "aún no cuentan como error: una palabra sin tilde se da por buena con un aviso «Casi». Contarán cuando domine «¿Lleva tilde?» en el tema Tildes."}</div>
+      <div>🔊 <b>Dictado:</b> ${L4.canSpeak() ? "este dispositivo puede leer en voz alta en español." : "este dispositivo no tiene voz en español, así que el dictado usa dibujos. En la tablet: Ajustes → Texto a voz → español (España)."}</div>
+    </div>
+    <p class="muted" style="margin-top:14px">El tiempo cuenta lo que se tarda en cada pregunta (como mucho un minuto por pregunta), así que es algo menos que el tiempo total en la app.</p>`;
+  // tooltip on the weekly bars (hover, or tap on the tablet)
+  const box = $("#parentBody .wk"), tipEl = box.querySelector(".wk-tip");
+  box.querySelectorAll(".wk-hit").forEach(h => {
+    const show = () => {
+      box.querySelectorAll(".wk-hit.on").forEach(o => o.classList.remove("on")); h.classList.add("on");
+      const b = h.getBoundingClientRect(), o = box.getBoundingClientRect();
+      tipEl.textContent = h.dataset.tip; tipEl.style.display = "block";
+      tipEl.style.left = Math.min(Math.max(b.left - o.left + b.width / 2, 110), o.width - 110) + "px"; tipEl.style.top = "40px";
+    };
+    h.addEventListener("pointerenter", show); h.addEventListener("click", show);
+    h.addEventListener("pointerleave", () => { h.classList.remove("on"); tipEl.style.display = "none"; });
+  });
+}
+
 function renderAll(){
-  renderDaily(); renderTopics();
+  renderDaily(); renderTopics(); renderMap(); renderParents();
   $("#soundBtn").textContent = P.sound ? "🔊" : "🔇";
 }
 
@@ -189,6 +332,9 @@ $("#restoreFile").addEventListener("change", async e => {
 
 L4.registerOffline("sw.js");
 renderAll();
+// …/#mapa or …/#mayores opens that panel (handy for a bookmark)
+if (location.hash === "#mapa") $("#mapPanel").open = true;
+if (location.hash === "#mayores") $("#parents").open = true;
 })();
 </script>
 </body>

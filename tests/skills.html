@@ -17,6 +17,7 @@
 <script src="../diccionario/skills.js"></script>
 <script src="../lectura/skills.js"></script>
 <script src="../literatura/skills.js"></script>
+<script src="../shared/curriculum.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -263,6 +264,15 @@ function checkAgreement(where, toks){
   S("li-recursos").recursos.forEach(r => addTextAll(r[0]));
   S("li-lenguas").mundo.forEach(([q, r, w]) => { addTextAll(q); addTextAll(r); w.forEach(addTextAll); });
   S("li-lenguas").countries.forEach(addTextAll);
+})();
+
+/* the curriculum map: every skill is on it, and every skill it names exists */
+(function(){
+  const all = new Set(L4.TOPICS.flatMap(T => T.skills.map(s => s.id)));
+  const onMap = new Set(L4.CURRICULUM.flatMap(sec => sec.lines.flatMap(l => l[1])));
+  all.forEach(id => { if (!onMap.has(id)) fail(`curriculum map: ${id} is not on any line`); });
+  onMap.forEach(id => { if (!all.has(id)) fail(`curriculum map: ${id} doesn't exist`); });
+  out.push(`PASS curriculum map: ${all.size} skills on ${L4.CURRICULUM.reduce((n, s) => n + s.lines.length, 0)} lines`);
 })();
 
 for (const T of L4.TOPICS){

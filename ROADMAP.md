@@ -265,11 +265,15 @@ All texts written for the app (no copied poems).
 - [x] Lenguas de España: gallego, catalán / valenciano, euskera and where; «Bon dia», «Bos días», «Egun on»…; the history of Spanish
       (latín, Castilla, Glosas Emilianenses) and where it is spoken (not in Brasil!)
 
-### Phase 9 – Main page extras
-- [ ] Curriculum map: every line of `curriculo_lengua_4_primaria.md`, coloured by progress. Lines that are class work (speaking, whole books) are marked "en clase".
-- [ ] Mezcla del día and racha 🔥 (the daily mix and the daily streak)
-- [ ] Zona de mayores (the grown-ups' view): time spent, weakest skills, progress over the weeks
-- [ ] Backup and restore
+### Phase 9 – Main page extras ✅
+- [x] Mapa del currículo (`shared/curriculum.js`): every line of `curriculo_lengua_4_primaria.md`, plus what Santillana's book adds and the
+      Spanish-vs-English skill, coloured sin empezar / aprendiendo / dominado; class-only lines (speaking, whole books, research) marked
+      "en clase". Each line links to its skill. A test checks that all 58 skills are on the map
+- [x] Mezcla del día and racha 🔥 (built in Phase 0; checked: in 200 mixes every one of the 58 skills comes up)
+- [x] Zona de mayores: answers, % right and minutes in the last 7 days, streak, stars, a weekly chart (with a table), the weakest skills,
+      whether accents count yet, and whether the device can read aloud
+- [x] Backup and restore (built in Phase 0)
+- `…/#mapa` and `…/#mayores` open those panels directly
 
 ### Phase 10 – Check that regular use covers everything
 - [ ] Go through the curriculum file and the book's table of contents line by line, and fill any gaps

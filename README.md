@@ -49,11 +49,12 @@ The maths app is on the same address, so the two apps share the browser's storag
 
 ## How it's organised
 ```
-index.html              main page: topic tiles, Mezcla del día, backup
+index.html              main page: topic tiles, Mezcla del día, mapa del currículo, zona de mayores, backup
 sw.js                   offline support (add new files to FILES and change the number in CACHE)
 shared/engine.js        question engine: inputs (choice, gap, text keyboard, words, order, punct), feedback, results
 shared/progress.js      saving, levels, stars, daily mix, backup
 shared/topic.js         a topic page: skill tabs, rule card, 3 levels, stars
+shared/curriculum.js    every curriculum line and the skills that practise it (the map)
 shared/words.js         shared word bank (checked against the Spanish dictionary)
 shared/silabas.js       syllables, the stressed syllable, aguda/llana/esdrújula, adding and removing accents
 ortografia/ … vocabulario/   one folder per topic: index.html + skills.js
