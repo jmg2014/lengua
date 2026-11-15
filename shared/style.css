@@ -156,3 +156,4 @@ h3{font-size:1.05rem;margin:1.2em 0 .5em}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
 .q .hint{letter-spacing:.18em;white-space:nowrap}
 .q .vv{color:var(--accent);text-decoration:underline;text-underline-offset:.15em}
+.answer.long{font-size:clamp(1.4rem,4.6vw,2.2rem)}

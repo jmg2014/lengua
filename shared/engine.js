@@ -241,6 +241,7 @@ function renderGap(q, fill, cls){
   const [a, b] = q.gap.split(/_+/);
   const shown = fill === undefined ? "&nbsp;&nbsp;" : fill === "" ? "" : esc(fill);
   $("#answer").innerHTML = `${esc(a)}<span class="slot ${cls || ""}${fill === "" ? " none" : ""}">${shown}</span>${esc(b || "")}`;
+  $("#answer").classList.toggle("long", q.gap.length > 14);       // a phrase, not a word: smaller letters
 }
 const isMark = w => /^[.,;:!?¡¿…«»"()—-]+$/.test(w);
 function renderWords(q){

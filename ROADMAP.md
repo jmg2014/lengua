@@ -189,19 +189,25 @@ and every mistake shows the rule again.
   - Word lists: every hand-sorted list is checked against the accent rules.
   - "¿Lleva tilde?": leaves out words where a wrong way of writing them is a real word (caminó, libró, lampara, futbol…).
 
-### Phase 3 – Gramática
-- [ ] La oración: sujeto y predicado (subject and predicate). Tap the subject; find the verb that agrees with it.
-- [ ] Clases de oraciones: enunciativa (positive or negative), interrogativa, exclamativa, imperativa, desiderativa
-- [ ] El grupo nominal: determinante + sustantivo + adjetivo; find the noun at its centre (*núcleo*)
-- [ ] Sustantivos: common or proper, singular or plural nouns (*individual* / *colectivo*), gender and number, plurals (-s / -es / -z → -ces)
-- [ ] Determinantes: artículos, demostrativos (este/ese/aquel), posesivos (mi/tu/su…), numerales (cardinal and ordinal) and indefinidos
-- [ ] Adjetivos calificativos and agreement (*la casa blanc_*); the sentence with the agreement mistake
-- [ ] Pronombres personales: replace a noun with one
-- [ ] El verbo: infinitive and conjugation (-ar/-er/-ir), number, person and tense (past, present or future)
-- [ ] Conjugaciones verbales: complete a simple tense of a regular verb (presente, pretérito perfecto simple, futuro)
-- [ ] El adverbio: place, time, manner, quantity, affirmation and negation
-- [ ] Preposiciones y conjunciones: complete the sentence; know the list of prepositions (a, ante, bajo…)
-- [ ] ¿Qué clase de palabra es?: tap the word class in a sentence (a mixed review of all of the above)
+### Phase 3 – Gramática ✅
+12 skills. A sentence maker builds sentences with every word labelled (determinante, sustantivo, adjetivo, verbo,
+preposición, adverbio) and with correct agreement; most skills ask about those sentences.
+- [x] Sujeto y predicado: tap the subject, tap the verb, and the subject at the end (*En el parque juegan los niños*)
+- [x] Clases de oraciones: enunciativa (afirmativa / negativa), interrogativa, exclamativa, imperativa, desiderativa (hand-written)
+- [x] El grupo nominal: the núcleo, the determiner and the adjective, and the núcleo of the subject in a sentence
+- [x] Sustantivos: find them; común / propio, gender and number, individual / colectivo; write the plural (with accent changes: camión → camiones, joven → jóvenes)
+- [x] Determinantes: the article that agrees; artículo, demostrativo, posesivo, numeral or indefinido; the form that agrees
+- [x] Adjetivos y concordancia: find them, choose -o/-a/-os/-as, and tap the word that doesn't agree
+- [x] Pronombres personales: which one replaces a group (Pablo y Marta → ellos), find it, person and number
+- [x] El verbo: find it, its conjugation (-ar, -er, -ir), the infinitive of a form, its tense, person and number
+- [x] Conjugar: regular verbs in presente, pretérito perfecto simple, pretérito imperfecto and futuro
+- [x] Adverbios: find them, their type (lugar, tiempo, modo, cantidad, afirmación, negación), two in a sentence
+- [x] Preposiciones y conjunciones: complete the sentence (hand-written), find them, and y → e, o → u
+- [x] ¿Qué clase de palabra es?: a mixed review
+- **Checks:**
+  - Agreement: every generated sentence is re-checked with separate tables. On a deliberately broken copy, the check flagged it 62 times.
+  - Plurals and verb forms: tested against hand-made lists.
+  - Questions: forms that could be two tenses or two persons (*cantamos*, *cantaba*) are never asked about.
 
 ### Phase 4 – Vocabulario
 - [ ] Palabras primitivas y derivadas, and familia de palabras (pan → panadero, panadería)

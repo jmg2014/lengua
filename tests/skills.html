@@ -11,6 +11,7 @@
 <script src="../shared/topic.js"></script>
 <script src="../ortografia/skills.js"></script>
 <script src="../tildes/skills.js"></script>
+<script src="../gramatica/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -21,7 +22,7 @@
 const out = []; let fails = 0, count = 0;
 const fail = m => { fails++; if (fails < 60) out.push("FAIL " + m); };
 const words = new Set(), miss = new Set();
-const addTextAll = t => String(t).split(/[\s\-]+/).forEach(w => { if (w) words.add(w); });
+const addTextAll = t => String(t).replace(/\(-\w+\)/g, "").split(/[\s\-]+/).forEach(w => { if (w) words.add(w); });
 function check(skill, lv, q){
   // the hyphen and syllable skills show pieces of words (mari-posa) and the capitals skill shows names in lower case on purpose:
   // their whole words are checked from skill.words and skill.names instead
@@ -52,13 +53,18 @@ function check(skill, lv, q){
       else if (/^[.,;:!?¡¿…]+$/.test(q.words[i])) fail(where + ": answer is a punctuation mark");
     }
     if (q.one && q.answer.length !== 1) fail(where + ": one:true needs exactly one right word");
-    q.words.forEach((w, i) => { if (!q.answer.includes(i) || skill.id === "or-may") addText(w); });
+    q.words.forEach((w, i) => { if (!q.answer.includes(i) || skill.id === "or-may" || skill.id.startsWith("gr-")) addText(w); });
     addText(L4.solutionOf(q));
   }
   if (m === "order"){
     if (!q.items || q.items.length < 2) fail(where + ": needs 2+ cards");
   }
   if (skill.id === "or-may") checkCapitals(where, q);
+  if (q.tagged) checkAgreement(where, q.tagged);
+  if (q.mistake){
+    const diff = q.words.map((w, i) => w !== q.tagged[i].w ? i : -1).filter(i => i >= 0);
+    if (diff.length !== 1 || diff[0] !== q.answer[0]) fail(`${where}: the mistake must change exactly the tapped word`);
+  }
   (q.wrongs || []).forEach(w => miss.add(w));
   // a wrong option in a choice question must never be the same word as the answer
   if (m === "choice" && q.wrongs) q.wrongs.forEach(w => { if (w === q.answer) fail(where + ": a wrong option equals the answer"); });
@@ -110,6 +116,50 @@ function checkCapitals(where, q){
     if ((sent.match(/_/g) || []).length !== 1) fail(`tildes: "${sent}" needs exactly one gap`);
     addTextAll(sent.replace("_", ans));
   }
+})();
+
+/* Gramática: agreement in every generated sentence, worked out again with separate tables */
+const D_FORMS = {
+  "m.sg":["el", "un", "este", "ese", "aquel", "mi", "tu", "su", "nuestro"],
+  "f.sg":["la", "una", "esta", "esa", "aquella", "mi", "tu", "su", "nuestra"],
+  "m.pl":["los", "unos", "estos", "esos", "aquellos", "mis", "tus", "sus", "nuestros", "dos", "tres", "cuatro", "algunos", "varios", "muchos", "pocos"],
+  "f.pl":["las", "unas", "estas", "esas", "aquellas", "mis", "tus", "sus", "nuestras", "dos", "tres", "cuatro", "algunas", "varias", "muchas", "pocas"]
+};
+function checkAgreement(where, toks){
+  const subj = toks.filter(t => t.subj);
+  if (!subj.length) return;
+  const g = subj[0].g, pl = subj[0].pl, key = `${g}.${pl ? "pl" : "sg"}`;
+  for (const t of subj){
+    const w = t.w.toLocaleLowerCase("es");
+    if (t.c === "D" && !D_FORMS[key].includes(w)) fail(`${where}: determiner "${w}" doesn't fit ${key}`);
+    if (t.c === "ADJ"){
+      const base = t.adj[0];
+      const ok = base.endsWith("o") ? w.endsWith({ "m.sg":"o", "f.sg":"a", "m.pl":"os", "f.pl":"as" }[key]) : (pl ? /e?s$/.test(w) && w !== base : w === base);
+      if (!ok) fail(`${where}: adjective "${w}" doesn't fit ${key}`);
+    }
+    if (t.c === "N" && pl !== /s$/.test(w)) fail(`${where}: noun "${w}" number`);
+  }
+  const v = toks.find(t => t.c === "V");
+  if (v && pl !== /n$/.test(v.w)) fail(`${where}: verb "${v.w}" doesn't agree with the subject`);
+}
+(function(){
+  if (!L4.plural) return;
+  const PL = "casa casas|flor flores|árbol árboles|lápiz lápices|camión camiones|ratón ratones|joven jóvenes|examen exámenes|imagen imágenes|pared paredes|" +
+    "reloj relojes|papel papeles|pez peces|luz luces|nariz narices|sofá sofás|café cafés|jardín jardines|canción canciones|autobús autobuses|mes meses|" +
+    "rey reyes|ley leyes|menú menús|corazón corazones|mujer mujeres|feliz felices|azul azules|grande grandes";
+  for (const pair of PL.split("|")){ const [a, b] = pair.split(" "), got = L4.plural(a); if (got !== b) fail(`plural ${a} → ${got} (want ${b})`); }
+  const CJ = [["cantar", "presente", 0, "canto"], ["cantar", "presente", 4, "cantáis"], ["beber", "pretérito perfecto simple", 1, "bebiste"], ["vivir", "futuro", 3, "viviremos"],
+    ["comer", "pretérito imperfecto", 3, "comíamos"], ["escribir", "pretérito perfecto simple", 2, "escribió"], ["bailar", "pretérito perfecto simple", 0, "bailé"],
+    ["vivir", "presente", 4, "vivís"], ["correr", "presente", 5, "corren"], ["saltar", "pretérito imperfecto", 4, "saltabais"], ["subir", "pretérito perfecto simple", 5, "subieron"],
+    ["aprender", "futuro", 5, "aprenderán"], ["nadar", "pretérito perfecto simple", 4, "nadasteis"]];
+  for (const [inf, t, p, want] of CJ){ const got = L4.conj(inf, t, p); if (got !== want) fail(`conj ${inf} ${t} ${p} → ${got} (want ${want})`); }
+  const G = L4.TOPICS.find(t => t.id === "gramatica");
+  G.skills.find(s => s.id === "gr-verbo").forms.forEach(f => addTextAll(f.f));
+  G.skills.find(s => s.id === "gr-sustantivo").pluralPool.forEach(w => { addTextAll(w); addTextAll(L4.plural(w)); });
+  G.skills.find(s => s.id === "gr-sustantivo").colectivos.forEach(([a, b]) => { addTextAll(a); addTextAll(b); });
+  for (const lists of Object.values(G.skills.find(s => s.id === "gr-tipos").sentences)) lists.forEach(addTextAll);
+  G.skills.find(s => s.id === "gr-prepos").sentences.forEach(([s, a]) => addTextAll(s.replace("_", a)));
+  G.skills.find(s => s.id === "gr-adverbio").frames.forEach(([f, , list]) => list.forEach(a => addTextAll(f.replace(/\{.*?\}/, a))));
 })();
 
 for (const T of L4.TOPICS){
