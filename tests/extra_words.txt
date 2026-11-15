@@ -6,3 +6,18 @@ guepardo
 cajita
 ojito
 brócoli
+# In the RAE dictionary (dle.rae.es):
+cortaúñas
+precalentar
+superpoblado
+# Regular diminutives (-ito, -ita) and superlatives (-ísimo, -ísima): correct by rule, though dictionaries don't list them
+gatito
+librito
+zapatito
+vasito
+patito
+platito
+sillita
+abuelita
+carísima
+facilísimo

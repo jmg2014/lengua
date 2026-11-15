@@ -12,6 +12,7 @@
 <script src="../ortografia/skills.js"></script>
 <script src="../tildes/skills.js"></script>
 <script src="../gramatica/skills.js"></script>
+<script src="../vocabulario/skills.js"></script>
 <script>
 /* Generates many questions for every skill and level and checks each one, independently of the code that made it:
    - the question is well formed for its input (the answer is among the choices, the tapped words exist…)
@@ -42,8 +43,9 @@ function check(skill, lv, q){
     } else if (!/^[A-Z]/.test(q.answer) || skill.id !== "or-ingles") addText(q.answer);
   }
   if (m === "text"){
-    if (typeof q.answer !== "string" || !q.answer.trim()) fail(where + ": empty answer");
-    addText(q.answer);
+    const answers = Array.isArray(q.answer) ? q.answer : [q.answer];           // a list: any of them counts
+    if (!answers.length || answers.some(a => typeof a !== "string" || !a.trim())) fail(where + ": empty answer");
+    answers.forEach(addText);
     if (q.say && typeof q.say !== "string") fail(where + ": say must be text");
   }
   if (m === "words"){
@@ -160,6 +162,34 @@ function checkAgreement(where, toks){
   for (const lists of Object.values(G.skills.find(s => s.id === "gr-tipos").sentences)) lists.forEach(addTextAll);
   G.skills.find(s => s.id === "gr-prepos").sentences.forEach(([s, a]) => addTextAll(s.replace("_", a)));
   G.skills.find(s => s.id === "gr-adverbio").frames.forEach(([f, , list]) => list.forEach(a => addTextAll(f.replace(/\{.*?\}/, a))));
+})();
+
+/* Vocabulario: every word in the lists, and no question with two right answers */
+(function(){
+  const V = L4.TOPICS.find(t => t.id === "vocabulario"); if (!V) return;
+  const S = id => V.skills.find(s => s.id === id);
+  const f = S("vo-familia");
+  f.families.forEach(([p, d, fakes]) => { [p, ...d, ...fakes].forEach(addTextAll); fakes.forEach(x => { if (d.includes(x)) fail(`familia: ${x} is both`); }); });
+  f.clues.forEach(([w, c]) => { addTextAll(w); addTextAll(c); if (!f.families.some(x => x[1].includes(w))) fail(`familia: ${w} has no family`); });
+  const c = S("vo-compuestas");
+  c.compounds.forEach(([w, a, b, note]) => { [w, a, b].forEach(addTextAll); if (!note && L4.sinTilde(a + b) !== L4.sinTilde(w)) fail(`compuesta: ${a} + ${b} ≠ ${w} (add a note saying what changes)`); });
+  c.simples.forEach(addTextAll);
+  const p = S("vo-prefijos");
+  p.opposite.forEach(([b, w, pre]) => { addTextAll(b); addTextAll(w); if (pre + b !== w) fail(`prefijo: ${pre} + ${b} ≠ ${w}`); if (pre === "im" && !/^[pb]/.test(b)) fail(`prefijo im- before ${b}`); if (pre === "in" && /^[pb]/.test(b)) fail(`prefijo in- before ${b}`); });
+  Object.entries(p.meanings).forEach(([pre, [m, ws, bases]]) => { ws.forEach(addTextAll); ws.forEach(w => { if (!w.startsWith(pre)) fail(`prefijo ${pre}: ${w}`); }); });
+  p.clues.forEach(([c2, w]) => { addTextAll(c2); addTextAll(w); });
+  const su = S("vo-sufijos");
+  su.words.forEach(([w, from]) => { addTextAll(w); addTextAll(from); });
+  su.dims.forEach(([b, d]) => { addTextAll(b); addTextAll(d); if (b.slice(0, -1) + (b.endsWith("a") ? "ita" : "ito") !== d) fail(`diminutivo ${b} → ${d}`); });
+  const sy = S("vo-sinonimos"), seen = new Map();
+  sy.syn.forEach(pair => pair.forEach(w => { addTextAll(w); if (seen.has(w)) fail(`sinónimos: ${w} is in two pairs`); seen.set(w, pair); }));
+  sy.ant.forEach(([w, ants]) => { addTextAll(w); ants.forEach(addTextAll); });
+  const po = S("vo-polisemia");
+  po.poli.forEach(r => r.forEach(x => addTextAll(x.replace(/<[^>]+>/g, ""))));
+  po.homo.forEach(([s2, a]) => addTextAll(s2.replace("_", a)));
+  S("vo-frases").frases.forEach(r => r.forEach(addTextAll));
+  const ca = S("vo-campo"), all = new Map();
+  Object.entries(ca.campos).forEach(([n, ws]) => ws.forEach(w => { addTextAll(w); if (all.has(w)) fail(`campo: ${w} is in ${all.get(w)} and ${n}`); all.set(w, n); }));
 })();
 
 for (const T of L4.TOPICS){

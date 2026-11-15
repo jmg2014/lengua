@@ -209,15 +209,20 @@ preposición, adverbio) and with correct agreement; most skills ask about those 
   - Plurals and verb forms: tested against hand-made lists.
   - Questions: forms that could be two tenses or two persons (*cantamos*, *cantaba*) are never asked about.
 
-### Phase 4 – Vocabulario
-- [ ] Palabras primitivas y derivadas, and familia de palabras (pan → panadero, panadería)
-- [ ] Palabras simples y compuestas (*sacapuntas*, *paraguas*, *girasol*)
-- [ ] Prefijos: of negation (des-, in-/im-), of place (sub-, sobre-, inter-…) and others (re-, pre-, super-…)
-- [ ] Sufijos: aumentativos and diminutivos (-ito, -illo, -ín, -ón, -azo), plus jobs and places (-ero, -ería)
-- [ ] Sinónimos and antónimos
-- [ ] Polisemia (*banco*, *hoja*) and **homófonas** (*hola/ola*, *vaca/baca*, *hecho/echo*, *tubo/tuvo*)
-- [ ] Frases hechas: match the phrase to its meaning (*estar en las nubes*, *costar un ojo de la cara*)
-- [ ] Campo léxico / semántico: find the word that doesn't belong
+### Phase 4 – Vocabulario ✅
+8 skills, all from hand-written lists.
+- [x] Familias de palabras: the primitive word, the look-alike that isn't in the family (pan / pantalón), write the derived word from a clue
+- [x] Simples y compuestas: which is which, join two words (gira + sol), and split them
+- [x] Prefijos: des- / in- / im- for the opposite, what re-, pre-, sub-, sobre-, super-, inter- mean, write the word
+- [x] Sufijos: diminutivo, aumentativo, oficio (-ero) or tienda (-ería); which word it comes from; write the diminutive
+- [x] Sinónimos y antónimos: choose them, and write the antonym (several answers count: frío → caliente or cálido)
+- [x] Polisemia (banco, hoja, planta, cola…) and homófonas (hola/ola, vaca/baca, tubo/tuvo, hay/ahí/ay, valla/vaya…)
+- [x] Frases hechas: what they mean, and which one fits a situation
+- [x] Campo semántico: the intruder, name the theme, tap all the words of a theme
+- **Checks:**
+  - Spelling: every word goes through the spelling check.
+  - Lists: no word is in two synonym pairs or two themes, and compound and prefixed words really are the two parts joined (or say what changes).
+  - Hand-checked list: diminutives like *gatito*, which dictionaries don't list, are kept in `tests/extra_words.txt`.
 
 ### Phase 5 – Oraciones y puntuación
 - [ ] ¿ ? and ¡ !, including the opening marks Spanish needs (English doesn't have them)

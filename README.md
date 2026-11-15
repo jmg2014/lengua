@@ -13,7 +13,7 @@ It's built like the maths app (`~/math`, [jmg2014.github.io/math](https://jmg201
 | ✏️ Ortografía | `ortografia/` | ✅ Built: 13 skills |
 | Á Tildes | `tildes/` | ✅ Built: 6 skills |
 | 🧩 Gramática | `gramatica/` | ✅ Built: 12 skills |
-| 🔤 Vocabulario | `vocabulario/` | Coming soon |
+| 🔤 Vocabulario | `vocabulario/` | ✅ Built: 8 skills |
 | ❓ Oraciones y puntuación | `oraciones/` | Coming soon |
 | 📖 Diccionario | `diccionario/` | Coming soon |
 | 👓 Lectura | `lectura/` | Coming soon |
@@ -56,7 +56,7 @@ shared/progress.js      saving, levels, stars, daily mix, backup
 shared/topic.js         a topic page: skill tabs, rule card, 3 levels, stars
 shared/words.js         shared word bank (checked against the Spanish dictionary)
 shared/silabas.js       syllables, the stressed syllable, aguda/llana/esdrújula, adding and removing accents
-ortografia/, tildes/, gramatica/   one folder per topic: index.html + skills.js
+ortografia/ … vocabulario/   one folder per topic: index.html + skills.js
 shared/style.css        the look, light and dark mode
 tests/                  automated checks and a demo of every input
 ```
